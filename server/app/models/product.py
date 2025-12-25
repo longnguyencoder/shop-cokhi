@@ -5,6 +5,7 @@ from app.db.base_class import Base
 class Brand(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
+    code = Column(String, unique=True, index=True)  # Brand code/SKU
     logo_url = Column(String)
     description = Column(Text)
     

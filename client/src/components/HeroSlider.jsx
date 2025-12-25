@@ -77,19 +77,32 @@ const HeroSlider = ({ slides = [] }) => {
 
                     {/* Content */}
                     <div className="relative z-20 container mx-auto px-4 h-full flex items-center">
-                        <div className="max-w-2xl">
-                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4 uppercase tracking-tight leading-tight">
+                        <div className={`max-w-3xl transform transition-all duration-1000 delay-300 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                            <div className="flex items-center gap-3 mb-6">
+                                <span className="h-1 w-12 bg-primary"></span>
+                                <span className="text-primary text-xs font-black uppercase tracking-[0.5em]">{slide.cta}</span>
+                            </div>
+                            <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-[0.9] italic" style={{ textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                                 {slide.title}
                             </h2>
-                            <p className="text-xl md:text-2xl text-[#EDB917] font-bold mb-8 italic">
+                            <p className="text-xl md:text-2xl text-gray-200 font-medium mb-10 max-w-xl leading-relaxed">
                                 {slide.subtitle}
                             </p>
-                            <a
-                                href={slide.link}
-                                className="inline-block bg-[#EDB917] hover:bg-[#d4a615] text-[#1B2631] px-8 py-4 rounded-lg font-black uppercase tracking-wider text-sm transition-all transform hover:scale-105 shadow-xl"
-                            >
-                                {slide.cta}
-                            </a>
+                            <div className="flex gap-4">
+                                <a
+                                    href={slide.link}
+                                    className="group inline-flex items-center gap-3 bg-primary hover:bg-white text-navy px-10 py-5 rounded-full font-black uppercase tracking-wider text-xs transition-all shadow-glow hover:shadow-premium"
+                                >
+                                    Khám Phá Ngay
+                                    <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                </a>
+                                <a
+                                    href="/contact"
+                                    className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-10 py-5 rounded-full font-black uppercase tracking-wider text-xs transition-all border border-white/10"
+                                >
+                                    Liên Hệ Tư Vấn
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,8 +129,8 @@ const HeroSlider = ({ slides = [] }) => {
                         key={index}
                         onClick={() => goToSlide(index)}
                         className={`h-2 rounded-full transition-all ${index === currentSlide
-                                ? 'w-8 bg-[#EDB917]'
-                                : 'w-2 bg-white/50 hover:bg-white/75'
+                            ? 'w-8 bg-[#EDB917]'
+                            : 'w-2 bg-white/50 hover:bg-white/75'
                             }`}
                     />
                 ))}

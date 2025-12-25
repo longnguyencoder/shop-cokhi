@@ -4,6 +4,8 @@ import api from './api/axios'
 import { getMe, logout } from './api/auth'
 import AuthModal from './components/AuthModal'
 import CartDrawer from './components/CartDrawer'
+import DynamicMegaMenu from './components/DynamicMegaMenu'
+import SITE_CONFIG from './config/site'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -147,7 +149,7 @@ function App() {
           </div>
           <div className="flex items-center text-accent font-bold">
             <Phone className="h-4 w-4 mr-1" />
-            HOTLINE: 0903.867.467
+            HOTLINE: {SITE_CONFIG.contact.hotline.replace(/\s/g, '.')}
           </div>
         </div>
       </div>
@@ -160,8 +162,8 @@ function App() {
               <Package className="h-8 w-8 text-primary" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-2xl font-black text-navy tracking-tighter uppercase">SHOP CO KHI</span>
-              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Professional Tools</span>
+              <span className="text-2xl font-black text-navy tracking-tighter uppercase">TEKKO</span>
+              <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Precision Mechanical Tools</span>
             </div>
           </div>
 
@@ -222,22 +224,8 @@ function App() {
         </div>
       </header>
 
-      {/* Main Nav */}
-      <nav className="bg-navy text-white hidden md:block border-t border-navy-light sticky top-0 z-50">
-        <div className="container mx-auto px-4 flex">
-          <div className="bg-primary text-navy font-black px-8 py-3.5 flex items-center gap-2 cursor-pointer group">
-            <Menu className="h-5 w-5" />
-            DANH MỤC SẢN PHẨM
-          </div>
-          <div className="flex space-x-1 ml-4">
-            {['DỤNG CỤ CẮT GỌT', 'ĐẦU KẸP CÁC LOẠI', 'PHỤ KIỆN MÁY TIỆN', 'DỤNG CỤ ĐO LƯỜNG'].map(item => (
-              <a key={item} href="#" className="px-6 py-3.5 text-xs font-black hover:bg-navy-light transition-colors whitespace-nowrap uppercase tracking-wider">
-                {item}
-              </a>
-            ))}
-          </div>
-        </div>
-      </nav>
+      {/* Main Nav - Dynamic Mega Menu */}
+      <DynamicMegaMenu />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-10">
@@ -370,7 +358,7 @@ function App() {
             <div className="space-y-8">
               <div className="flex items-center space-x-2">
                 <Package className="h-8 w-8 text-primary shadow-primary/20" />
-                <span className="text-2xl font-black tracking-tighter uppercase italic">SHOP CO KHI</span>
+                <span className="text-2xl font-black tracking-tighter uppercase italic">TEKKO</span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed font-medium">
                 Dẫn đầu trong việc cung cấp các thiết bị gia công cơ khí chính xác. Hợp tác cùng các tập đoàn công cụ hàng đầu thế giới.
@@ -403,17 +391,17 @@ function App() {
 
             <div>
               <h4 className="font-black text-white mb-8 uppercase tracking-widest text-xs border-b-2 border-primary pb-2 w-max">Tư vấn kỹ thuật</h4>
-              <div className="text-3xl font-black text-primary mb-4 tracking-tighter">0903.867.467</div>
+              <div className="text-3xl font-black text-primary mb-4 tracking-tighter">{SITE_CONFIG.contact.phone.replace(/\s/g, '.')}</div>
               <div className="space-y-4">
                 <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Thời gian làm việc:</p>
                 <p className="text-gray-400 text-sm font-medium">Thứ 2 - Thứ 7: 08:00 - 17:30</p>
-                <p className="text-primary text-sm font-black underline italic">Email: sales@shopcokhi.vn</p>
+                <p className="text-primary text-sm font-black underline italic">Email: {SITE_CONFIG.contact.email}</p>
               </div>
             </div>
           </div>
           <div className="border-t border-white/5 pt-10 text-center flex flex-col items-center gap-4">
             <div className="text-[10px] text-gray-700 font-black tracking-[0.3em] uppercase">
-              © 2025 SHOP CO KHI. ALL RIGHTS RESERVED.
+              © 2025 TEKKO. ALL RIGHTS RESERVED.
             </div>
             <div className="text-[8px] text-gray-800 font-bold uppercase tracking-widest">
               Design by Google Deepmind Team - Advanced Agentic Coding

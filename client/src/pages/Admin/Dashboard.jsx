@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Package, FolderTree, Factory, LayoutGrid, ChevronRight, BarChart3, Settings } from 'lucide-react';
-import { AdminProducts, AdminCategories } from './Components';
+import { Package, FolderTree, Factory, LayoutGrid, ChevronRight, BarChart3, Settings, Users } from 'lucide-react';
+import { AdminProducts, AdminCategories, AdminUsers, AdminBrands } from './Components';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('products');
@@ -8,6 +8,7 @@ const AdminDashboard = () => {
     const menuItems = [
         { id: 'products', name: 'Sản phẩm', icon: Package },
         { id: 'categories', name: 'Danh mục', icon: FolderTree },
+        { id: 'users', name: 'Người dùng', icon: Users },
         { id: 'brands', name: 'Thương hiệu', icon: Factory },
         { id: 'stats', name: 'Thống kê', icon: BarChart3 },
         { id: 'settings', name: 'Cài đặt', icon: Settings },
@@ -31,8 +32,8 @@ const AdminDashboard = () => {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id)}
                                     className={`w-full flex items-center justify-between p-4 rounded-lg transition-all group ${activeTab === item.id
-                                            ? 'bg-[#EDB917] text-[#1B2631]'
-                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                        ? 'bg-[#EDB917] text-[#1B2631]'
+                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                         }`}
                                 >
                                     <div className="flex items-center gap-4">
@@ -58,7 +59,9 @@ const AdminDashboard = () => {
                     <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-2 min-h-[70vh]">
                         {activeTab === 'products' && <AdminProducts />}
                         {activeTab === 'categories' && <AdminCategories />}
-                        {['brands', 'stats', 'settings'].includes(activeTab) && (
+                        {activeTab === 'users' && <AdminUsers />}
+                        {activeTab === 'brands' && <AdminBrands />}
+                        {['stats', 'settings'].includes(activeTab) && (
                             <div className="h-full flex flex-col items-center justify-center p-20 text-center space-y-4">
                                 <div className="bg-white p-8 rounded-full shadow-xl">
                                     <BarChart3 className="h-20 w-20 text-gray-100" />

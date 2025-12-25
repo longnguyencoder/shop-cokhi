@@ -38,3 +38,62 @@ app.add_exception_handler(BusinessException, business_exception_handler)
 @app.get("/")
 def root():
     return {"message": "Welcome to Mechanical Electronics Shop API", "docs": "/docs"}
+
+from fastapi import Response, Depends
+from sqlalchemy.orm import Session
+from app.api import deps
+from app.models.product import Product
+from app.models.category import Category
+from datetime import datetime
+
+@app.get("/sitemap.xml", response_class=Response)
+def get_sitemap(db: Session = Depends(deps.get_db)):
+    base_url = "https://tekko.vn"
+    
+    # Static routes
+    urls = [
+        {"loc": f"{base_url}/", "changefreq": "daily", "priority": "1.0"},
+        {"loc": f"{base_url}/products", "changefreq": "daily", "priority": "0.8"},
+        {"loc": f"{base_url}/promotions", "changefreq": "daily", "priority": "0.8"},
+        {"loc": f"{base_url}/contact", "changefreq": "monthly", "priority": "0.5"},
+    ]
+
+    # Categories
+    categories = db.query(Category).all()
+    for cat in categories:
+        urls.append({
+            "loc": f"{base_url}/?category_id={cat.id}", # Frontend uses query params for categories currently
+            "changefreq": "weekly",
+            "priority": "0.7"
+        })
+
+    # Products
+    products = db.query(Product).all()
+    for product in products:
+        # Assuming product updated_at exists, else use now, or omit lastmod
+        lastmod = datetime.now().strftime("%Y-%m-%d") 
+        if hasattr(product, 'updated_at') and product.updated_at:
+             lastmod = product.updated_at.strftime("%Y-%m-%d")
+
+        urls.append({
+            "loc": f"{base_url}/product/{product.slug}",
+            "lastmod": lastmod,
+            "changefreq": "weekly",
+            "priority": "0.9"
+        })
+
+    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    for url in urls:
+        xml_content += '  <url>\n'
+        xml_content += f'    <loc>{url["loc"]}</loc>\n'
+        if "lastmod" in url:
+            xml_content += f'    <lastmod>{url["lastmod"]}</lastmod>\n'
+        xml_content += f'    <changefreq>{url["changefreq"]}</changefreq>\n'
+        xml_content += f'    <priority>{url["priority"]}</priority>\n'
+        xml_content += '  </url>\n'
+    
+    xml_content += '</urlset>'
+    
+    return Response(content=xml_content, media_type="application/xml")

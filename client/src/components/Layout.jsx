@@ -6,6 +6,7 @@ import { getMe, logout } from '../api/auth';
 import AuthModal from './AuthModal';
 import CartDrawer from './CartDrawer';
 import SITE_CONFIG from '../config/site';
+import zaloIcon from '../assets/zalo.png';
 
 const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess, onLogout }) => {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -85,15 +86,15 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
             </div>
 
             {/* Middle Header */}
-            <header className="bg-white py-4 shadow-sm relative z-[60]">
+            <header className="glass-header py-4 sticky top-0 md:relative md:top-auto z-[60] shadow-premium">
                 <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-4">
                     <Link to="/" className="flex items-center space-x-2">
                         <div className="bg-[#1B2631] p-2 rounded">
                             <Package className="h-8 w-8 text-[#EDB917]" />
                         </div>
                         <div className="flex flex-col leading-none">
-                            <span className="text-2xl font-black text-[#1B2631] tracking-tighter uppercase">SHOP CO KHI</span>
-                            <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Professional Tools</span>
+                            <span className="text-2xl font-black text-[#1B2631] tracking-tighter uppercase">TEKKO</span>
+                            <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Precision Mechanical Tools</span>
                         </div>
                     </Link>
 
@@ -165,7 +166,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
             </header>
 
             {/* Main Nav */}
-            <nav className="bg-[#1B2631] text-white hidden md:block border-t border-[#2c3e50] sticky top-0 z-50">
+            <nav className="bg-[#1B2631] text-white hidden md:block border-t border-white/5 sticky top-[84px] md:top-0 z-50 shadow-lg">
                 <div className="container mx-auto px-4 flex">
                     <div className="bg-[#EDB917] text-[#1B2631] font-black px-8 py-3.5 flex items-center gap-2 cursor-pointer group">
                         <Menu className="h-5 w-5" />
@@ -187,46 +188,111 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
 
             <Outlet />
 
-            {/* Footer */}
-            <footer className="bg-[#1B2631] text-white mt-32 pt-20 pb-16">
+            {/* Floating Contact Buttons */}
+            <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-4 animate-fade-in-up">
+                <a
+                    href={`https://zalo.me/${SITE_CONFIG.contact.phoneRaw}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-14 h-14 bg-[#0068FF] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group relative"
+                >
+                    <img src={zaloIcon} alt="Zalo" className="w-8 h-8 object-contain" />
+                    <span className="absolute right-full mr-4 bg-white text-[#0068FF] px-3 py-1 rounded-lg text-xs font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-premium pointer-events-none">
+                        Chat Zalo Ngay
+                    </span>
+                </a>
+                <a
+                    href={`tel:${SITE_CONFIG.contact.phoneRaw}`}
+                    className="w-14 h-14 bg-[#E31837] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group relative animate-bounce"
+                    style={{ animationDuration: '3s' }}
+                >
+                    <Phone className="h-6 w-6" />
+                    <span className="absolute right-full mr-4 bg-white text-[#E31837] px-3 py-1 rounded-lg text-xs font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-premium pointer-events-none">
+                        {SITE_CONFIG.contact.phone}
+                    </span>
+                </a>
+            </div>
+
+            {/* Final Footer */}
+            <footer className="bg-navy text-white pt-24 pb-12 border-t border-white/5">
                 <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
                         <div className="space-y-8">
-                            <div className="flex items-center space-x-2">
-                                <Package className="h-8 w-8 text-[#EDB917]" />
-                                <span className="text-2xl font-black tracking-tighter uppercase italic">SHOP CO KHI</span>
-                            </div>
-                            <p className="text-gray-500 text-sm leading-relaxed font-medium">
-                                Dẫn đầu trong việc cung cấp các thiết bị gia công cơ khí chính xác.
+                            <Link to="/" className="flex items-center space-x-3 group">
+                                <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 group-hover:border-primary transition-colors">
+                                    <Package className="h-8 w-8 text-primary" />
+                                </div>
+                                <div className="flex flex-col leading-none">
+                                    <span className="text-xl font-black tracking-tighter uppercase italic">CÔNG TY TNHH TEKKO VIỆT NAM</span>
+                                    <span className="text-[9px] text-gray-500 font-bold tracking-[0.3em] uppercase">Mã số thuế: {SITE_CONFIG.contact.mst}</span>
+                                </div>
+                            </Link>
+                            <p className="text-gray-400 text-sm leading-relaxed font-medium max-w-xs">
+                                {SITE_CONFIG.contact.address}
                             </p>
+                            <div className="flex gap-4">
+                                {['fb', 'yt', 'li'].map(social => (
+                                    <div key={social} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:text-navy hover:-translate-y-1 transition-all cursor-pointer">
+                                        <span className="text-xs font-black uppercase tracking-tighter">{social}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <div>
-                            <h4 className="font-black text-white mb-8 uppercase tracking-widest text-xs border-b-2 border-[#EDB917] pb-2 w-max">Sản phẩm</h4>
-                            <ul className="text-gray-500 text-sm space-y-4 font-bold">
-                                {['Dụng cụ cắt gọt', 'Hệ thống kẹp dao', 'Đầu gá máy tiện'].map(item => (
-                                    <li key={item} className="hover:text-[#EDB917] cursor-pointer transition-all">{item}</li>
+                            <h4 className="font-black text-white mb-8 uppercase tracking-[0.3em] text-[11px] flex items-center gap-3">
+                                <span className="h-1 w-6 bg-primary"></span>
+                                Danh Mục Chính
+                            </h4>
+                            <ul className="space-y-4">
+                                {categories.filter(c => !c.parent_id).slice(0, 4).map(cat => (
+                                    <li key={cat.id}>
+                                        <Link to={`/?category_id=${cat.id}`} className="text-gray-400 hover:text-primary transition-colors text-sm font-bold flex items-center gap-2 group">
+                                            <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                                            {cat.name}
+                                        </Link>
+                                    </li>
                                 ))}
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className="font-black text-white mb-8 uppercase tracking-widest text-xs border-b-2 border-[#EDB917] pb-2 w-max">Hỗ trợ</h4>
-                            <ul className="text-gray-500 text-sm space-y-4 font-bold">
-                                {['Chính sách bảo hành', 'Vận chuyển', 'Liên hệ'].map(item => (
-                                    <li key={item} className="hover:text-[#EDB917] cursor-pointer transition-all">{item}</li>
+                            <h4 className="font-black text-white mb-8 uppercase tracking-[0.3em] text-[11px] flex items-center gap-3">
+                                <span className="h-1 w-6 bg-primary"></span>
+                                Hỗ Trợ Đội Ngũ
+                            </h4>
+                            <ul className="space-y-4">
+                                {['Chính sách bảo hành', 'Vận chuyển hỏa tốc', 'Hỗ trợ kỹ thuật 24/7', 'Báo giá dự án xưởng'].map(item => (
+                                    <li key={item}>
+                                        <Link to="#" className="text-gray-400 hover:text-primary transition-colors text-sm font-bold flex items-center gap-2 group">
+                                            <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                                            {item}
+                                        </Link>
+                                    </li>
                                 ))}
                             </ul>
                         </div>
 
-                        <div>
-                            <h4 className="font-black text-white mb-8 uppercase tracking-widest text-xs border-b-2 border-[#EDB917] pb-2 w-max">Liên hệ</h4>
-                            <div className="text-3xl font-black text-[#EDB917] mb-4 tracking-tighter">0903.867.467</div>
-                            <p className="text-gray-500 text-sm">Email: sales@shopcokhi.vn</p>
+                        <div className="bg-white/5 p-8 rounded-2xl border border-white/10">
+                            <h4 className="font-black text-white mb-6 uppercase tracking-[0.3em] text-[11px]">Hotline Tư Vấn</h4>
+                            <a href={`tel:${SITE_CONFIG.contact.phoneRaw}`} className="text-2xl font-black text-primary hover:scale-105 block transition-transform origin-left tracking-tighter mb-4">
+                                {SITE_CONFIG.contact.phone}
+                            </a>
+                            <div className="space-y-3 pt-4 border-t border-white/5">
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Email: {SITE_CONFIG.contact.email}</p>
+                                <p className="text-xs text-gray-300 font-medium">Giao hàng toàn quốc</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="border-t border-white/5 pt-10 text-center text-[10px] text-gray-700 font-black tracking-widest uppercase">
-                        © 2025 SHOP CO KHI. DESIGNED BY ANTIGRAVITY
+
+                    <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="text-[10px] text-gray-600 font-black tracking-[0.4em] uppercase">
+                            © 2025 TEKKO. ALL RIGHTS RESERVED.
+                        </div>
+                        <div className="flex gap-8 text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                            <span className="hover:text-primary cursor-pointer transition-colors">Privacy Policy</span>
+                            <span className="hover:text-primary cursor-pointer transition-colors">Terms of Service</span>
+                        </div>
                     </div>
                 </div>
             </footer>

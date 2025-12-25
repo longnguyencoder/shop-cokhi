@@ -7,13 +7,25 @@ import { getMe } from './api/auth'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import ProductDetail from './pages/ProductDetail'
+import Products from './pages/Products'
+import Promotions from './pages/Promotions'
 import Checkout from './pages/Checkout'
+import Contact from './pages/Contact'
 import AdminDashboard from './pages/Admin/Dashboard'
 import Profile from './pages/Profile'
+import ScrollToTop from './components/ScrollToTop'
 
 function Root() {
   const [user, setUser] = useState(null)
-  const [cartItems, setCartItems] = useState([])
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const savedCart = localStorage.getItem('cart')
+      return savedCart ? JSON.parse(savedCart) : []
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error)
+      return []
+    }
+  })
   const [loading, setLoading] = useState(true)
 
   const fetchUser = useCallback(async () => {
@@ -35,8 +47,6 @@ function Root() {
 
   useEffect(() => {
     fetchUser()
-    const savedCart = localStorage.getItem('cart')
-    if (savedCart) setCartItems(JSON.parse(savedCart))
   }, [fetchUser])
 
   useEffect(() => {
@@ -73,13 +83,14 @@ function Root() {
     <div className="min-h-screen bg-[#1B2631] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="h-12 w-12 border-4 border-[#EDB917] border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-white font-black uppercase tracking-[0.3em] text-[10px]">Shop Co Khi</span>
+        <span className="text-white font-black uppercase tracking-[0.3em] text-[10px]">TEKKO</span>
       </div>
     </div>
   )
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={
           <Layout
@@ -92,8 +103,11 @@ function Root() {
           />
         }>
           <Route index element={<Home onAddToCart={handleAddToCart} />} />
+          <Route path="products" element={<Products onAddToCart={handleAddToCart} />} />
+          <Route path="promotions" element={<Promotions onAddToCart={handleAddToCart} />} />
           <Route path="product/:slug" element={<ProductDetail onAddToCart={handleAddToCart} />} />
           <Route path="checkout" element={<Checkout cartItems={cartItems} user={user} onOrderSuccess={handleOrderSuccess} />} />
+          <Route path="contact" element={<Contact />} />
           <Route path="profile" element={<Profile user={user} onUpdateSuccess={(updated) => setUser(updated)} />} />
 
           {/* Admin Protected Route */}

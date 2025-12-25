@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight } from 'lucide-react';
 
 const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem }) => {
@@ -74,10 +75,10 @@ const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem
                             <span className="text-2xl font-black text-navy">{total.toLocaleString()} VNĐ</span>
                         </div>
                         <p className="text-[10px] text-gray-400 font-medium italic">Chưa bao gồm phí vận chuyển và VAT.</p>
-                        <button className="w-full bg-primary hover:bg-primary-dark text-navy font-black py-4 rounded shadow-lg transition-all flex items-center justify-center gap-3 uppercase tracking-tighter">
+                        <Link to="/contact" onClick={onClose} className="w-full bg-primary hover:bg-primary-dark text-navy font-black py-4 rounded shadow-lg transition-all flex items-center justify-center gap-3 uppercase tracking-tighter">
                             TIẾN HÀNH ĐẶT HÀNG
                             <ArrowRight className="h-5 w-5" />
-                        </button>
+                        </Link>
                     </div>
                 )}
             </div>

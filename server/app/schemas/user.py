@@ -20,7 +20,7 @@ class UserCreate(BaseModel):
 
 # Schema for Login
 class UserLogin(BaseModel):
-    email: EmailStr
+    username: EmailStr  # Frontend sends 'username' field
     password: str
 
 # Properties to receive via API on update

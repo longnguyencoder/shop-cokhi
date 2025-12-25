@@ -5,9 +5,12 @@ import api from '../api/axios';
 import Lightbox from '../components/Lightbox';
 import SITE_CONFIG from '../config/site';
 
+import ProductCarousel from '../components/ProductCarousel';
+
 const ProductDetail = ({ onAddToCart }) => {
     const { slug } = useParams();
     const [product, setProduct] = useState(null);
+    const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -18,6 +21,18 @@ const ProductDetail = ({ onAddToCart }) => {
             try {
                 const res = await api.get(`/products/${slug}`);
                 setProduct(res.data);
+
+                // Fetch related products
+                if (res.data.category_id) {
+                    const relatedRes = await api.get('/products/', {
+                        params: {
+                            category_id: res.data.category_id,
+                            limit: 10
+                        }
+                    });
+                    // Filter out current product
+                    setRelatedProducts(relatedRes.data.filter(p => p.id !== res.data.id));
+                }
             } catch (error) {
                 console.error("Error fetching product:", error);
             } finally {
@@ -26,6 +41,50 @@ const ProductDetail = ({ onAddToCart }) => {
         };
         fetchProduct();
     }, [slug]);
+
+    // Product Schema Markup
+    useEffect(() => {
+        if (!product) return;
+
+        const imageUrl = product.image_url
+            ? (product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`)
+            : '';
+
+        const schema = {
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": product.name,
+            "image": imageUrl ? [imageUrl] : [],
+            "description": product.description || `Mua ${product.name} chính hãng tại Tekko.`,
+            "sku": product.sku,
+            "mpn": product.sku,
+            "brand": {
+                "@type": "Brand",
+                "name": product.brand?.name || "Generic"
+            },
+            "offers": {
+                "@type": "Offer",
+                "url": window.location.href,
+                "priceCurrency": "VND",
+                "price": product.sale_price || product.price,
+                "availability": product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                "itemCondition": "https://schema.org/NewCondition",
+                "seller": {
+                    "@type": "Organization",
+                    "name": SITE_CONFIG.business.name
+                }
+            }
+        };
+
+        const script = document.createElement('script');
+        script.type = "application/ld+json";
+        script.text = JSON.stringify(schema);
+        document.head.appendChild(script);
+
+        return () => {
+            document.head.removeChild(script);
+        };
+    }, [product]);
 
     if (loading) {
         return (
@@ -131,6 +190,13 @@ const ProductDetail = ({ onAddToCart }) => {
                                     <MessageCircle className="h-5 w-5" />
                                     CHAT ZALO: {SITE_CONFIG.contact.phone}
                                 </a>
+                                <button
+                                    onClick={() => onAddToCart({ ...product, quantity })}
+                                    className="w-full bg-navy hover:bg-navy-light text-white h-14 rounded-lg font-black uppercase tracking-tighter shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 border border-white/10"
+                                >
+                                    <ShoppingCart className="h-5 w-5 text-primary" />
+                                    THÊM VÀO GIỎ HÀNG
+                                </button>
                             </div>
 
                             <p className="text-xs text-gray-500 font-medium text-center italic">
@@ -236,6 +302,17 @@ const ProductDetail = ({ onAddToCart }) => {
                         </table>
                     </div>
                 </div>
+                {/* Related Products */}
+                {relatedProducts.length > 0 && (
+                    <div className="mt-12 pt-12 border-t-2 border-dashed border-gray-100">
+                        <ProductCarousel
+                            title="Sản phẩm liên quan"
+                            products={relatedProducts}
+                            onAddToCart={onAddToCart}
+                        />
+                    </div>
+                )}
+
             </div>
             {/* Lightbox */}
             <Lightbox

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class BrandBase(BaseModel):
     name: str
+    code: Optional[str] = None
     logo_url: Optional[str] = None
     description: Optional[str] = None
 

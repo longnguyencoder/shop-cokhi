@@ -14,13 +14,14 @@ router = APIRouter()
 
 @router.post("/login/access-token", response_model=schemas.Token)
 def login_access_token(
-    db: Session = Depends(deps.get_db), login_data: schemas.UserLogin = None
+    login_data: schemas.UserLogin,
+    db: Session = Depends(deps.get_db)
 ) -> Any:
     """
     Token login, get an access token for future requests
     """
     user = user_repository.authenticate(
-        db, email=login_data.email, password=login_data.password
+        db, email=login_data.username, password=login_data.password
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")

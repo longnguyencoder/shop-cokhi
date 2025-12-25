@@ -4,11 +4,12 @@
 export const SITE_CONFIG = {
     // Contact Information
     contact: {
-        phone: '0903 867 467',
-        phoneRaw: '0903867467', // For tel: links
-        hotline: 'HOTLINE: 0903 867 467',
-        email: 'contact@shopcokhi.vn',
-        address: 'Địa chỉ cửa hàng của bạn',
+        phone: '093 799 0519',
+        phoneRaw: '0937990519', // For tel: links
+        hotline: '093 799 0519',
+        email: 'tekkovietnam@hotmail.com',
+        address: '113 Đường số 6, Phường Bình Tân, Thành phố Hồ Chí Minh, Việt Nam.',
+        mst: '0317633925',
     },
 
     // Business Information

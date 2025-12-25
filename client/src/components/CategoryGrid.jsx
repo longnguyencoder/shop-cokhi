@@ -38,7 +38,7 @@ const CategoryGrid = () => {
                             <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
                                 {category.image_url ? (
                                     <img
-                                        src={category.image_url}
+                                        src={category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${category.image_url}`}
                                         alt={category.name}
                                         className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />
