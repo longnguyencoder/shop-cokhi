@@ -9,6 +9,7 @@ import CategoryGrid from '../components/CategoryGrid';
 import ProductCarousel from '../components/ProductCarousel';
 import ProductCard from '../components/ProductCard';
 import { ProductSkeleton } from '../components/Skeleton';
+import SEO from '../components/SEO';
 
 const Home = ({ onAddToCart }) => {
     const [searchParams] = useSearchParams();
@@ -56,6 +57,14 @@ const Home = ({ onAddToCart }) => {
 
     return (
         <div className="min-h-screen bg-white">
+            <SEO
+                title="Trang chủ"
+                description="TEKKO Việt Nam - Đơn vị hàng đầu cung cấp giải pháp dụng cụ cắt gọt chính xác, các loại mũi phay, mũi khoan, chip tiện chính hãng từ Kyocera, Guhring, Winstar."
+            />
+
+            {/* SEO Hidden H1 */}
+            <h1 className="sr-only">TEKKO - Dụng cụ cơ khí chính xác & Giải pháp gia công chuyên nghiệp</h1>
+
             {/* Hero Slider */}
             <HeroSlider />
 

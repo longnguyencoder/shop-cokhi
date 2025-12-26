@@ -2,8 +2,37 @@ import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
 import SITE_CONFIG from '../config/site';
 import api from '../api/axios';
+import SEO from '../components/SEO';
 
 const Contact = () => {
+    // LocalBusiness Schema
+    const businessSchema = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": SITE_CONFIG.business.name,
+        "image": `${window.location.origin}/logo.png`,
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": SITE_CONFIG.contact.address,
+            "addressLocality": "TP. Hồ Chí Minh",
+            "addressCountry": "VN"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 10.762622, // Example coordinates
+            "longitude": 106.660172
+        },
+        "url": window.location.origin,
+        "telephone": SITE_CONFIG.contact.phoneRaw,
+        "openingHoursSpecification": [
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "opens": "08:00",
+                "closes": "18:00"
+            }
+        ]
+    };
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -36,6 +65,14 @@ const Contact = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
+            <SEO
+                title="Liên hệ"
+                description="Liên hệ với TEKKO Việt Nam để nhận tư vấn kỹ thuật chuyên sâu và báo giá tốt nhất cho các giải pháp dụng cụ cắt gọt cơ khí chính xác."
+            />
+            {/* Structured Data for Local Business */}
+            <script type="application/ld+json">
+                {JSON.stringify(businessSchema)}
+            </script>
             <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="text-center mb-12">

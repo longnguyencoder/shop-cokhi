@@ -4,6 +4,7 @@ import { Package, Percent, TrendingDown, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
 import SITE_CONFIG from '../config/site';
 import { ProductSkeleton } from '../components/Skeleton';
+import SEO from '../components/SEO';
 
 const Promotions = ({ onAddToCart }) => {
     const [products, setProducts] = useState([]);
@@ -44,6 +45,10 @@ const Promotions = ({ onAddToCart }) => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 py-8">
+            <SEO
+                title="Khuyến mãi"
+                description={`Tổng hợp các chương trình khuyến mãi, giảm giá cực sốc các loại dụng cụ cơ khí, mũi phay, mũi khoan tại TEKKO. Tiết kiệm lên đến 50%!`}
+            />
             <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="text-center mb-12">

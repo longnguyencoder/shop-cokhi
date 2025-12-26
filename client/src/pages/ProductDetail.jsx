@@ -6,6 +6,7 @@ import Lightbox from '../components/Lightbox';
 import SITE_CONFIG from '../config/site';
 
 import ProductCarousel from '../components/ProductCarousel';
+import SEO from '../components/SEO';
 
 const ProductDetail = ({ onAddToCart }) => {
     const { slug } = useParams();
@@ -134,6 +135,11 @@ const ProductDetail = ({ onAddToCart }) => {
 
     return (
         <div className="container mx-auto px-4 py-10">
+            <SEO
+                title={product.name}
+                description={product.description || `Mua ${product.name} chính hãng tại TEKKO. Dụng cụ cơ khí chính xác chất lượng cao, nhập khẩu 100%.`}
+                ogImage={product.image_url?.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
+            />
             {/* Breadcrumb */}
             <nav className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-8 flex gap-2 items-center">
                 <Link to="/" className="hover:text-primary">Trang chủ</Link>

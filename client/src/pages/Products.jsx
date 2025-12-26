@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, ChevronDown, Package, ShoppingCart } from 'l
 import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
 import { ProductSkeleton } from '../components/Skeleton';
+import SEO from '../components/SEO';
 
 const Products = ({ onAddToCart }) => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -134,15 +135,21 @@ const Products = ({ onAddToCart }) => {
 
     const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
+    const currentCategoryName = filters.category_id
+        ? categories.find(c => c.id === parseInt(filters.category_id))?.name
+        : 'Tất cả sản phẩm';
+
     return (
         <div className="min-h-screen bg-gray-50 py-8">
+            <SEO
+                title={currentCategoryName}
+                description={`Khám phá danh sách ${currentCategoryName} chính hãng tại TEKKO. Dụng cụ cơ khí chính xác chất lượng cao, giải pháp tối ưu cho gia công cơ khí.`}
+            />
             <div className="container mx-auto px-4">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-4xl font-black text-[#1B2631] uppercase tracking-tight mb-2">
-                        {filters.category_id ?
-                            `Danh mục: ${categories.find(c => c.id === parseInt(filters.category_id))?.name || '...'}` :
-                            'Tất cả sản phẩm'}
+                        {filters.category_id ? `Danh mục: ${currentCategoryName}` : 'Tất cả sản phẩm'}
                     </h1>
                     <p className="text-gray-600 font-bold">
                         Hiển thị {totalProducts} sản phẩm chất lượng cao
