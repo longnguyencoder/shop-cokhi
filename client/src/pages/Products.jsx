@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, ChevronDown, Package, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
+import ProductCard from '../components/ProductCard';
 
 const Products = ({ onAddToCart }) => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -285,58 +286,11 @@ const Products = ({ onAddToCart }) => {
                         {!loading && products.length > 0 && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {products.map(product => (
-                                    <div
+                                    <ProductCard
                                         key={product.id}
-                                        className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-[#EDB917] transition-all group flex flex-col"
-                                    >
-                                        <Link
-                                            to={`/product/${product.slug}`}
-                                            className="block flex-1"
-                                        >
-                                            <div className="aspect-square bg-gray-50 overflow-hidden">
-                                                {product.image_url ? (
-                                                    <img
-                                                        src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `http://localhost:8000${product.image_url}`}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <Package className="h-20 w-20 text-gray-200" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="p-4">
-                                                <h3 className="font-black text-[#1B2631] text-sm mb-2 line-clamp-2 group-hover:text-[#EDB917] transition-colors">
-                                                    {product.name}
-                                                </h3>
-                                                <p className="text-xs text-gray-400 font-bold mb-3">SKU: {product.sku}</p>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-lg font-black text-[#E31837]">
-                                                        {product.price ? product.price.toLocaleString('vi-VN') + '₫' : 'LIÊN HỆ'}
-                                                    </span>
-                                                    {!product.in_stock && (
-                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
-                                                            Hết hàng
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                        <div className="px-4 pb-4">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    if (onAddToCart) onAddToCart(product);
-                                                }}
-                                                className="w-full bg-[#1B2631] hover:bg-[#EDB917] hover:text-[#1B2631] text-white py-2 rounded-lg font-black uppercase text-xs transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <ShoppingCart className="h-4 w-4" />
-                                                Thêm vào giỏ
-                                            </button>
-                                        </div>
-                                    </div>
+                                        product={product}
+                                        onAddToCart={onAddToCart}
+                                    />
                                 ))}
                             </div>
                         )}

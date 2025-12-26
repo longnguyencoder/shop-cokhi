@@ -17,6 +17,7 @@ class CategoryUpdate(CategoryBase):
 
 class Category(CategoryBase):
     id: int
+    product_count: int = 0
     
     class Config:
         from_attributes = True

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Package, Phone, MessageCircle, Check, ShieldCheck, Truck, RotateCcw, Factory, ShoppingCart } from 'lucide-react';
+import { Package, Phone, MessageCircle, Check, ShieldCheck, Truck, RotateCcw, Factory, ShoppingCart, Search, Minus, Plus } from 'lucide-react';
 import api from '../api/axios';
 import Lightbox from '../components/Lightbox';
 import SITE_CONFIG from '../config/site';
@@ -14,6 +14,8 @@ const ProductDetail = ({ onAddToCart }) => {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [zoomPos, setZoomPos] = useState({ x: 0, y: 0, mouseX: 0, mouseY: 0 });
+    const [isZooming, setIsZooming] = useState(false);
 
     console.log("ProductDetail Rendering. Slug:", slug, "Loading:", loading, "Product:", product);
 
@@ -92,6 +94,20 @@ const ProductDetail = ({ onAddToCart }) => {
         };
     }, [product]);
 
+    const handleMouseMove = (e) => {
+        const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+
+        // Percentages for background-position
+        const x = ((e.pageX - left - window.scrollX) / width) * 100;
+        const y = ((e.pageY - top - window.scrollY) / height) * 100;
+
+        // Relative pixels for lens position
+        const mouseX = e.pageX - left - window.scrollX;
+        const mouseY = e.pageY - top - window.scrollY;
+
+        setZoomPos({ x, y, mouseX, mouseY });
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-20">
@@ -129,32 +145,79 @@ const ProductDetail = ({ onAddToCart }) => {
                 <div className="flex flex-col md:flex-row gap-12">
                     {/* Image */}
                     <div
-                        className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px] sm:min-h-[400px] md:min-h-[500px] relative overflow-hidden cursor-zoom-in group"
+                        className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-100 min-h-[300px] sm:min-h-[400px] md:min-h-[500px] relative cursor-crosshair group"
                         onClick={() => product.image_url && setLightboxOpen(true)}
+                        onMouseMove={handleMouseMove}
+                        onMouseEnter={() => setIsZooming(true)}
+                        onMouseLeave={() => setIsZooming(false)}
                     >
                         {product.image_url ? (
                             <>
                                 <img
                                     src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
                                     alt={product.name}
-                                    className="max-h-full w-full object-contain p-4 sm:p-6 md:p-8 group-hover:scale-105 transition-transform duration-300"
+                                    className="max-h-full w-full object-contain p-4 sm:p-6 md:p-8"
                                 />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
-                                    <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-[#1B2631] px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all">
-                                        Click để phóng to
-                                    </span>
-                                </div>
+
+                                {isZooming && (
+                                    <>
+                                        {/* Lens (Magnifying Glass area) - Professional transparent grey style */}
+                                        <div
+                                            className="absolute border border-gray-300 bg-white/40 pointer-events-none z-20 shadow-lg overflow-hidden"
+                                            style={{
+                                                width: '180px',
+                                                height: '180px',
+                                                left: `${Math.max(0, Math.min(zoomPos.mouseX - 90, (zoomPos.mouseX / (zoomPos.x / 100 || 1)) - 180))}px`, // Attempt to stay inside
+                                                top: `${zoomPos.mouseY - 90}px`,
+                                            }}
+                                        />
+
+                                        {/* Zoom Window - Side-by-Side portal style (Overlaying details) */}
+                                        <div
+                                            className="absolute top-0 left-0 md:left-[105%] w-full h-full bg-white border-2 border-gray-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[100] rounded-xl hidden md:block overflow-hidden pointer-events-none"
+                                            style={{
+                                                backgroundImage: `url(${(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`})`,
+                                                backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                                                backgroundSize: '450%', // High zoom for detail
+                                                backgroundRepeat: 'no-repeat'
+                                            }}
+                                        >
+                                            <div className="absolute top-4 left-4 bg-navy text-primary text-[10px] font-black px-3 py-1 rounded shadow-lg uppercase tracking-widest border border-white/20">
+                                                SOi CHI TIẾT
+                                            </div>
+                                        </div>
+
+                                        {/* Mobile Zoom Overlay (Full coverage) */}
+                                        <div className="md:hidden absolute inset-0 bg-white z-[100] overflow-hidden pointer-events-none"
+                                            style={{
+                                                backgroundImage: `url(${(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`})`,
+                                                backgroundPosition: `${zoomPos.x}% ${zoomPos.y}%`,
+                                                backgroundSize: '350%',
+                                                backgroundRepeat: 'no-repeat'
+                                            }}
+                                        />
+                                    </>
+                                )}
+
+                                {!isZooming && (
+                                    <div className="absolute inset-0 bg-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <span className="bg-[#1B2631]/90 text-white border border-white/10 px-6 py-3 rounded-full font-black text-[11px] uppercase tracking-widest shadow-2xl flex items-center gap-2 transform group-hover:scale-110 transition-transform">
+                                            <Search className="h-4 w-4 text-[#EDB917]" />
+                                            Rê chuột để soi chi tiết
+                                        </span>
+                                    </div>
+                                )}
                             </>
                         ) : (
                             <Package className="h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 text-gray-200" />
                         )}
                         <div className="absolute top-4 left-4 z-10">
                             {product.in_stock ? (
-                                <span className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1.5">
-                                    <Check className="h-3 w-3" /> Hàng có sẵn
+                                <span className="bg-green-100/90 backdrop-blur-sm text-green-700 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest flex items-center gap-2 shadow-sm border border-green-200">
+                                    <Check className="h-3 w-3" /> HÀNG CÓ SẴN
                                 </span>
                             ) : (
-                                <span className="bg-red-100 text-red-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">Hết hàng</span>
+                                <span className="bg-red-100/90 backdrop-blur-sm text-red-700 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-sm border border-red-200">TẠM HẾT HÀNG</span>
                             )}
                         </div>
                     </div>
@@ -163,51 +226,85 @@ const ProductDetail = ({ onAddToCart }) => {
                     <div className="flex-1 space-y-8">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <span className="bg-navy text-primary text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest">SKU: {product.sku}</span>
-                                <span className="text-gray-400 font-bold text-xs uppercase italic">| {product.category?.name}</span>
+                                <span className="bg-navy text-primary text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest shadow-sm">SKU: {product.sku}</span>
+                                <span className="text-gray-400 font-bold text-[10px] uppercase tracking-widest">| {product.category?.name}</span>
                             </div>
-                            <h1 className="text-3xl md:text-4xl font-black text-navy uppercase leading-tight tracking-tighter mb-6 underline decoration-primary decoration-4 underline-offset-8 italic">
-                                {product.name}
+                            <h1 className="text-2xl md:text-4xl font-black text-navy uppercase leading-tight tracking-tighter mb-6 italic group">
+                                <span className="bg-gradient-to-r from-navy to-navy-light bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+                                    {product.name}
+                                </span>
                             </h1>
-                            <p className="text-gray-500 font-medium leading-relaxed">
-                                {product.description || "Dụng cụ cơ khí chính xác chất lượng cao, nhập khẩu trực tiếp từ các thương hiệu hàng đầu thế giới."}
-                            </p>
+                            <div className="prose prose-sm prose-slate max-w-none">
+                                <p className="text-gray-500 font-medium leading-relaxed italic">
+                                    {product.short_description || "Dụng cụ cơ khí chính xác chất lượng cao, nhập khẩu trực tiếp từ các thương hiệu hàng đầu thế giới, đảm bảo độ bền và hiệu suất tối ưu cho mọi quy trình sản xuất."}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-[#EDB917]/10 to-[#EDB917]/5 rounded-lg border-2 border-[#EDB917]">
-                            <div className="text-3xl md:text-4xl font-black text-[#E31837]">
-                                {product.price ? `${product.price.toLocaleString()} VNĐ` : 'LIÊN HỆ BÁO GIÁ'}
+                        <div className="flex flex-col gap-6 p-8 bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 border-gray-100 shadow-xl relative overflow-hidden group">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+
+                            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Giá bán niêm yết</p>
+                                    <div className="text-4xl md:text-5xl font-black text-accent tracking-tighter leading-none">
+                                        {product.price ? `${product.price.toLocaleString()} ` : 'LIÊN HỆ '}
+                                        <span className="text-lg uppercase text-gray-400">₫</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center bg-white border-2 border-gray-100 rounded-xl overflow-hidden shadow-sm h-14">
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        className="px-4 hover:bg-gray-50 transition-colors text-navy flex items-center h-full"
+                                    >
+                                        <Minus className="h-4 w-4" />
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                        className="w-14 text-center font-black text-lg focus:outline-none bg-transparent"
+                                    />
+                                    <button
+                                        onClick={() => setQuantity(quantity + 1)}
+                                        className="px-4 hover:bg-gray-50 transition-colors text-navy flex items-center h-full"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-10">
+                                <button
+                                    onClick={() => onAddToCart({ ...product, quantity })}
+                                    className="w-full bg-navy hover:bg-navy-light text-white h-16 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-lg transition-all flex items-center justify-center gap-3 active:scale-95 border border-white/10 group/cart"
+                                >
+                                    <ShoppingCart className="h-5 w-5 text-primary group-hover/cart:animate-bounce" />
+                                    THÊM VÀO GIỎ HÀNG
+                                </button>
                                 <a
                                     href={`tel:${SITE_CONFIG.contact.phoneRaw}`}
-                                    className="w-full bg-[#EDB917] hover:bg-[#d4a615] text-[#1B2631] h-14 rounded-lg font-black uppercase tracking-tighter shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
+                                    className="w-full bg-primary hover:bg-primary-dark text-navy h-16 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-lg transition-all flex items-center justify-center gap-3 active:scale-95 group/call"
                                 >
-                                    <Phone className="h-5 w-5" />
-                                    GỌI NGAY: {SITE_CONFIG.contact.phone}
+                                    <Phone className="h-5 w-5 group-hover/call:animate-shake" />
+                                    TƯ VẤN: {SITE_CONFIG.contact.phone}
                                 </a>
+                            </div>
+
+                            <div className="flex items-center justify-center gap-6 pt-4 border-t border-gray-100">
                                 <a
                                     href={`https://zalo.me/${SITE_CONFIG.contact.phoneRaw}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full bg-[#0068FF] hover:bg-[#0052CC] text-white h-14 rounded-lg font-black uppercase tracking-tighter shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95"
+                                    className="flex items-center gap-2 text-[10px] font-black text-[#0068FF] hover:underline uppercase tracking-tight"
                                 >
-                                    <MessageCircle className="h-5 w-5" />
-                                    CHAT ZALO: {SITE_CONFIG.contact.phone}
+                                    <MessageCircle className="h-4 w-4" /> Chat Zalo ngay
                                 </a>
-                                <button
-                                    onClick={() => onAddToCart({ ...product, quantity })}
-                                    className="w-full bg-navy hover:bg-navy-light text-white h-14 rounded-lg font-black uppercase tracking-tighter shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 border border-white/10"
-                                >
-                                    <ShoppingCart className="h-5 w-5 text-primary" />
-                                    THÊM VÀO GIỎ HÀNG
-                                </button>
+                                <div className="h-1 w-1 bg-gray-300 rounded-full"></div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight italic">
+                                    Hỗ trợ kỹ thuật chuyên sâu 24/7
+                                </p>
                             </div>
-
-                            <p className="text-xs text-gray-500 font-medium text-center italic">
-                                Liên hệ với chúng tôi để được tư vấn và đặt hàng
-                            </p>
                         </div>
 
                         {/* Description Section */}
@@ -223,22 +320,22 @@ const ProductDetail = ({ onAddToCart }) => {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3 p-3 border border-gray-100 rounded group hover:border-primary transition-colors">
-                                <ShieldCheck className="h-6 w-6 text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-navy">Bảo hành chính hãng</span>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div className="flex flex-col items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl group hover:border-primary transition-all shadow-sm">
+                                <ShieldCheck className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-navy text-center">Bảo hành<br />chính hãng</span>
                             </div>
-                            <div className="flex items-center gap-3 p-3 border border-gray-100 rounded group hover:border-primary transition-colors">
-                                <Truck className="h-6 w-6 text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-navy">Giao hàng tận nơi</span>
+                            <div className="flex flex-col items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl group hover:border-primary transition-all shadow-sm">
+                                <Truck className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-navy text-center">Giao hàng<br />toàn quốc</span>
                             </div>
-                            <div className="flex items-center gap-3 p-3 border border-gray-100 rounded group hover:border-primary transition-colors">
-                                <RotateCcw className="h-6 w-6 text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-navy">Đổi trả trong 7 ngày</span>
+                            <div className="flex flex-col items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl group hover:border-primary transition-all shadow-sm">
+                                <RotateCcw className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-navy text-center">7 ngày<br />đổi trả</span>
                             </div>
-                            <div className="flex items-center gap-3 p-3 border border-gray-100 rounded group hover:border-primary transition-colors">
-                                <Factory className="h-6 w-6 text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-navy">Hỗ trợ kỹ thuật 24/7</span>
+                            <div className="flex flex-col items-center gap-3 p-4 bg-white border border-gray-100 rounded-2xl group hover:border-primary transition-all shadow-sm">
+                                <Factory className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-navy text-center">Giải pháp<br />tối ưu</span>
                             </div>
                         </div>
                     </div>
@@ -248,7 +345,7 @@ const ProductDetail = ({ onAddToCart }) => {
                 <div className="mt-20 border-t border-gray-100 pt-12">
                     <div className="flex gap-8 border-b border-gray-100 mb-8">
                         <button className="pb-4 border-b-4 border-primary text-navy font-black uppercase tracking-widest text-xs">Thông số kỹ thuật</button>
-                        <button className="pb-4 text-gray-400 font-black uppercase tracking-widest text-xs hover:text-navy transition-colors">Tài liệu Downloads</button>
+                        <button className="pb-4 text-gray-400 font-black uppercase tracking-widest text-xs hover:text-navy transition-colors">Tài liệu kỹ thuật</button>
                     </div>
 
                     <div className="max-w-3xl">

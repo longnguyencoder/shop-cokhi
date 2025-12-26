@@ -113,6 +113,8 @@ function App() {
 
   const handleLogout = () => {
     logout()
+    localStorage.removeItem('cart')
+    setCartItems([])
     setUser(null)
   }
 

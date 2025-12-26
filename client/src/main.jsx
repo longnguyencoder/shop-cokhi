@@ -99,7 +99,12 @@ function Root() {
             onRemoveItem={handleRemoveCartItem}
             user={user}
             onAuthSuccess={fetchUser}
-            onLogout={() => { localStorage.removeItem('token'); setUser(null); }}
+            onLogout={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('cart');
+              setCartItems([]);
+              setUser(null);
+            }}
           />
         }>
           <Route index element={<Home onAddToCart={handleAddToCart} />} />

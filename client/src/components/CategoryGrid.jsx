@@ -54,6 +54,9 @@ const CategoryGrid = () => {
                                     {category.name}
                                     <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                 </h3>
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                                    {category.product_count || 0} sản phẩm
+                                </div>
                                 {category.description && (
                                     <p className="text-xs text-gray-400 mt-1 line-clamp-2">
                                         {category.description}

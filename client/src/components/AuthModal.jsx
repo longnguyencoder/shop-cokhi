@@ -64,15 +64,15 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
 
                     <div className="text-center mb-8">
                         <h2 className="text-2xl font-black text-navy uppercase tracking-tighter">
-                            {isLogin ? 'Đăng nhập tài khoản' : 'Đăng ký thành viên'}
+                            {isLogin ? 'Đăng nhập hệ thống' : 'Đăng ký tài khoản'}
                         </h2>
-                        <p className="text-gray-400 text-xs font-bold mt-2 uppercase tracking-widest">
-                            {isLogin ? 'Chào mừng bạn quay trở lại' : 'Trở thành đối tác của Shop Cơ Khí'}
+                        <p className="text-gray-400 text-xs font-bold mt-2 uppercase tracking-widest leading-relaxed px-4">
+                            {isLogin ? 'Chào mừng bạn quay trở lại với TEKKO' : 'Gia nhập cộng đồng cơ khí chính xác'}
                         </p>
                     </div>
 
                     {error && (
-                        <div className={`mb-6 p-3 rounded text-sm font-bold border ${error.includes('thành công') ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                        <div className={`mb-6 p-4 rounded-xl text-sm font-bold border-2 animate-in fade-in slide-in-from-top-1 duration-300 ${error.includes('thành công') ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
                             {error}
                         </div>
                     )}
@@ -80,26 +80,26 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (
                             <>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                <div className="relative group">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
                                         name="full_name"
-                                        placeholder="Họ và tên"
+                                        placeholder="Họ và tên của bạn"
                                         required
-                                        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 rounded focus:border-primary focus:outline-none transition-colors"
+                                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white focus:outline-none transition-all font-bold text-sm"
                                         value={formData.full_name}
                                         onChange={handleChange}
                                     />
                                 </div>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                <div className="relative group">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
                                         name="phone_number"
-                                        placeholder="Số điện thoại"
+                                        placeholder="Số điện thoại liên hệ"
                                         required
-                                        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 rounded focus:border-primary focus:outline-none transition-colors"
+                                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white focus:outline-none transition-all font-bold text-sm"
                                         value={formData.phone_number}
                                         onChange={handleChange}
                                     />
@@ -107,41 +107,41 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                             </>
                         )}
 
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <div className="relative group">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="email"
                                 name="email"
                                 placeholder="Địa chỉ Email"
                                 required
-                                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 rounded focus:border-primary focus:outline-none transition-colors"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white focus:outline-none transition-all font-bold text-sm"
                                 value={formData.email}
                                 onChange={handleChange}
                             />
                         </div>
 
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="password"
                                 name="password"
-                                placeholder="Mật khẩu"
+                                placeholder="Mật khẩu bảo mật"
                                 required
-                                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 rounded focus:border-primary focus:outline-none transition-colors"
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white focus:outline-none transition-all font-bold text-sm"
                                 value={formData.password}
                                 onChange={handleChange}
                             />
                         </div>
 
                         {!isLogin && (
-                            <div className="relative">
-                                <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                            <div className="relative group">
+                                <MapPin className="absolute left-4 top-4 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                 <textarea
                                     name="address"
-                                    placeholder="Địa chỉ giao hàng"
+                                    placeholder="Địa chỉ giao hàng (Số nhà, Tên đường...)"
                                     required
                                     rows="2"
-                                    className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-100 rounded focus:border-primary focus:outline-none transition-colors"
+                                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white focus:outline-none transition-all font-bold text-sm"
                                     value={formData.address}
                                     onChange={handleChange}
                                 ></textarea>
@@ -151,18 +151,18 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-primary hover:bg-primary-dark text-navy font-black py-3 rounded shadow-md transition-all flex items-center justify-center gap-2 uppercase tracking-tighter disabled:opacity-50"
+                            className="w-full bg-navy hover:bg-navy-light text-white font-black py-4 rounded-xl shadow-lg hover:shadow-glow transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs disabled:opacity-50 mt-6"
                         >
-                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (isLogin ? 'Đăng nhập ngay' : 'Tạo tài khoản')}
+                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (isLogin ? 'Đăng nhập ngay' : 'Xác nhận đăng ký')}
                         </button>
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-                        <p className="text-sm text-gray-500 font-medium">
-                            {isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
+                        <p className="text-sm text-gray-500 font-bold uppercase tracking-tight">
+                            {isLogin ? 'Bạn chưa có tài khoản?' : 'Bạn đã có tài khoản?'}
                             <button
                                 onClick={() => setIsLogin(!isLogin)}
-                                className="ml-2 text-primary font-black hover:underline uppercase text-xs"
+                                className="ml-2 text-primary font-black hover:underline uppercase text-xs tracking-widest"
                             >
                                 {isLogin ? 'Đăng ký ngay' : 'Đăng nhập'}
                             </button>

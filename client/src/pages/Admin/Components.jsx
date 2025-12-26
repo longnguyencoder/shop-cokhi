@@ -24,7 +24,7 @@ const AdminProducts = () => {
         try {
             const [p, c, b] = await Promise.all([
                 api.get('/products/'),
-                api.get('/categories/'),
+                api.get('/categories/', { params: { flat: true } }),
                 api.get('/brands/')
             ]);
             setProducts(p.data);
@@ -432,7 +432,7 @@ const AdminCategories = () => {
 
     const fetchCats = async () => {
         try {
-            const res = await api.get('/categories/');
+            const res = await api.get('/categories/', { params: { flat: true } });
             setCategories(res.data);
         } catch (err) {
             console.error(err);
@@ -530,6 +530,7 @@ const AdminCategories = () => {
                         <tr>
                             <th className="px-6 py-4">Hình ảnh</th>
                             <th className="px-6 py-4">Tên danh mục</th>
+                            <th className="px-6 py-4 text-center">Số sản phẩm</th>
                             <th className="px-6 py-4 text-center">Hành động</th>
                         </tr>
                     </thead>
@@ -548,6 +549,11 @@ const AdminCategories = () => {
                                 <td className="px-6 py-4">
                                     <div className="font-bold text-[#1B2631] uppercase tracking-tighter">{cat.name}</div>
                                     <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">{cat.slug}</div>
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                    <span className="bg-[#1B2631]/5 text-[#1B2631] px-3 py-1 rounded-full text-xs font-black">
+                                        {cat.product_count || 0}
+                                    </span>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex justify-center gap-3">

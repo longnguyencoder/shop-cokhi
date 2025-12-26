@@ -56,16 +56,23 @@ def read_menu_by_code(
         }
         
         # Fetch category if exists
+        # Fetch category if exists with product count
         if item.category_id:
             category = db.query(Category).filter(Category.id == item.category_id).first()
             if category:
+                # Get product count for this category
+                from app.models.product import Product
+                from sqlalchemy import func
+                product_count = db.query(func.count(Product.id)).filter(Product.category_id == category.id).scalar()
+                
                 item_dict["category"] = {
                     "id": category.id,
                     "name": category.name,
                     "slug": category.slug,
                     "description": category.description,
                     "image_url": category.image_url,
-                    "parent_id": category.parent_id
+                    "parent_id": category.parent_id,
+                    "product_count": product_count or 0
                 }
         
         menu_dict["items"].append(item_dict)

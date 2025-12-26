@@ -42,10 +42,16 @@ def read_categories(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    flat: bool = False,
 ) -> Any:
     """
-    Retrieve categories (root level with children).
+    Retrieve categories.
+    If flat=True, returns all categories in a flat list.
+    Otherwise, returns root level categories with children.
     """
+    if flat:
+        categories = category_repository.get_all_flat_with_counts(db)
+        return categories
     categories = category_repository.get_root_categories(db)
     return categories
 
