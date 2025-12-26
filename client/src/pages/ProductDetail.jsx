@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Package, Phone, MessageCircle, Check, ShieldCheck, Truck, RotateCcw, Factory } from 'lucide-react';
+import { Package, Phone, MessageCircle, Check, ShieldCheck, Truck, RotateCcw, Factory, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
 import Lightbox from '../components/Lightbox';
 import SITE_CONFIG from '../config/site';
@@ -14,6 +14,8 @@ const ProductDetail = ({ onAddToCart }) => {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [lightboxOpen, setLightboxOpen] = useState(false);
+
+    console.log("ProductDetail Rendering. Slug:", slug, "Loading:", loading, "Product:", product);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -31,7 +33,11 @@ const ProductDetail = ({ onAddToCart }) => {
                         }
                     });
                     // Filter out current product
-                    setRelatedProducts(relatedRes.data.filter(p => p.id !== res.data.id));
+                    if (Array.isArray(relatedRes.data)) {
+                        setRelatedProducts(relatedRes.data.filter(p => p.id !== res.data.id));
+                    } else {
+                        setRelatedProducts([]);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching product:", error);
@@ -46,7 +52,7 @@ const ProductDetail = ({ onAddToCart }) => {
     useEffect(() => {
         if (!product) return;
 
-        const imageUrl = product.image_url
+        const imageUrl = (product.image_url && typeof product.image_url === 'string')
             ? (product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`)
             : '';
 
@@ -129,7 +135,7 @@ const ProductDetail = ({ onAddToCart }) => {
                         {product.image_url ? (
                             <>
                                 <img
-                                    src={product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
+                                    src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
                                     alt={product.name}
                                     className="max-h-full w-full object-contain p-4 sm:p-6 md:p-8 group-hover:scale-105 transition-transform duration-300"
                                 />
@@ -170,7 +176,7 @@ const ProductDetail = ({ onAddToCart }) => {
 
                         <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-[#EDB917]/10 to-[#EDB917]/5 rounded-lg border-2 border-[#EDB917]">
                             <div className="text-3xl md:text-4xl font-black text-[#E31837]">
-                                {product.price > 0 ? `${product.price.toLocaleString()} VNĐ` : 'LIÊN HỆ BÁO GIÁ'}
+                                {product.price ? `${product.price.toLocaleString()} VNĐ` : 'LIÊN HỆ BÁO GIÁ'}
                             </div>
 
                             <div className="space-y-3">
@@ -291,8 +297,7 @@ const ProductDetail = ({ onAddToCart }) => {
                                     </tr>
                                 )}
 
-                                {/* Old specs from ProductSpec table */}
-                                {product.specs && product.specs.map(spec => (
+                                {Array.isArray(product.specs) && product.specs.map(spec => (
                                     <tr key={spec.id} className="group">
                                         <td className="py-4 font-black uppercase tracking-widest text-[10px] text-gray-400 w-1/3">{spec.key}</td>
                                         <td className="py-4 font-bold text-navy italic">{spec.value}</td>
@@ -317,7 +322,7 @@ const ProductDetail = ({ onAddToCart }) => {
             {/* Lightbox */}
             <Lightbox
                 isOpen={lightboxOpen}
-                imageUrl={product.image_url ? (product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`) : ''}
+                imageUrl={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
                 alt={product.name}
                 onClose={() => setLightboxOpen(false)}
             />
@@ -325,4 +330,12 @@ const ProductDetail = ({ onAddToCart }) => {
     );
 };
 
-export default ProductDetail;
+import ErrorBoundary from '../components/ErrorBoundary';
+
+const ProductDetailWithBoundary = (props) => (
+    <ErrorBoundary>
+        <ProductDetail {...props} />
+    </ErrorBoundary>
+);
+
+export default ProductDetailWithBoundary;

@@ -12,20 +12,48 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [menus, setMenus] = useState([]);
+    const [activeDropdown, setActiveDropdown] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchData = async () => {
             try {
-                const res = await api.get('/categories/');
-                setCategories(res.data);
+                // Fetch categories
+                const catRes = await api.get('/categories/');
+                setCategories(catRes.data);
+
+                // Fetch all menus with their items
+                try {
+                    const menusRes = await api.get('/menus/');
+                    if (menusRes.data) {
+                        const activeMenus = menusRes.data.filter(m => m.is_active);
+
+                        // Fetch items for each menu
+                        const menusWithItems = await Promise.all(
+                            activeMenus.map(async (menu) => {
+                                try {
+                                    const menuDetail = await api.get(`/menus/${menu.code}`);
+                                    return menuDetail.data;
+                                } catch (err) {
+                                    return menu;
+                                }
+                            })
+                        );
+
+                        console.log('Menus with items:', menusWithItems);
+                        setMenus(menusWithItems);
+                    }
+                } catch (err) {
+                    console.log('No menus found');
+                }
             } catch (error) {
-                console.error("Error fetching categories:", error);
+                console.error("Error fetching data:", error);
             }
         };
-        fetchCategories();
+        fetchData();
     }, []);
 
     const handleSearch = (e) => {
@@ -87,10 +115,10 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
 
             {/* Middle Header */}
             <header className="glass-header py-4 sticky top-0 md:relative md:top-auto z-[60] shadow-premium">
-                <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-4">
-                    <Link to="/" className="flex items-center space-x-2">
-                        <div className="bg-[#1B2631] p-2 rounded">
-                            <Package className="h-8 w-8 text-[#EDB917]" />
+                <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-6">
+                    <Link to="/" className="flex items-center space-x-3 flex-shrink-0">
+                        <div className="bg-[#1B2631] p-2.5 rounded">
+                            <Package className="h-9 w-9 text-[#EDB917]" />
                         </div>
                         <div className="flex flex-col leading-none">
                             <span className="text-2xl font-black text-[#1B2631] tracking-tighter uppercase">TEKKO</span>
@@ -98,7 +126,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                         </div>
                     </Link>
 
-                    <form onSubmit={handleSearch} className="flex-1 w-full max-w-2xl">
+                    <form onSubmit={handleSearch} className="flex-1 w-full max-w-xl">
                         <div className="flex overflow-hidden rounded-md border-2 border-[#EDB917]">
                             <input
                                 type="text"
@@ -113,7 +141,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                         </div>
                     </form>
 
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-8 flex-shrink-0">
                         {user ? (
                             <div className="group relative">
                                 <button className="flex flex-col items-center text-[#1B2631] hover:text-[#EDB917] transition-colors">
@@ -145,18 +173,18 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                                 className="flex flex-col items-center text-[#1B2631] hover:text-[#EDB917] transition-colors"
                             >
                                 <User className="h-6 w-6" />
-                                <span className="text-[10px] font-black uppercase mt-1">Tài khoản</span>
+                                <span className="text-[10px] font-black uppercase mt-1">ADMIN UPDA...</span>
                             </button>
                         )}
 
                         <button
                             onClick={() => setIsCartOpen(true)}
-                            className="relative flex flex-col items-center text-[#1B2631] hover:text-[#EDB917] transition-colors"
+                            className="flex flex-col items-center text-[#1B2631] hover:text-[#EDB917] transition-colors relative"
                         >
                             <ShoppingCart className="h-6 w-6" />
-                            <span className="text-[10px] font-black uppercase mt-1">Giỏ hàng</span>
+                            <span className="text-[10px] font-black uppercase mt-1">GIỎ HÀNG</span>
                             {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-[#E31837] text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                                <span className="absolute -top-1 -right-1 bg-[#E31837] text-white text-[10px] font-black rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                                     {cartCount}
                                 </span>
                             )}
@@ -172,16 +200,44 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                         <Menu className="h-5 w-5" />
                         DANH MỤC SẢN PHẨM
                     </div>
-                    <div className="flex space-x-1 ml-4 overflow-x-auto no-scrollbar">
-                        {categories.filter(c => !c.parent_id).slice(0, 5).map(cat => (
-                            <Link
-                                key={cat.id}
-                                to={`/?category_id=${cat.id}`}
-                                className="px-6 py-3.5 text-xs font-black hover:bg-[#2c3e50] transition-colors whitespace-nowrap uppercase tracking-wider"
-                            >
-                                {cat.name}
-                            </Link>
-                        ))}
+                    <div className="flex space-x-1 ml-4">
+                        {menus.length === 0 && <div className="px-6 py-3.5 text-xs text-gray-400">Đang tải menu...</div>}
+                        {menus.map((menu) => {
+                            const hasItems = menu.items && menu.items.length > 0;
+
+                            return (
+                                <div
+                                    key={menu.id}
+                                    className="relative"
+                                    onMouseEnter={() => setActiveDropdown(menu.id)}
+                                    onMouseLeave={() => setActiveDropdown(null)}
+                                >
+                                    <div className="px-6 py-3.5 text-xs font-black hover:bg-[#2c3e50] transition-colors whitespace-nowrap uppercase tracking-wider cursor-pointer">
+                                        {menu.name}
+                                    </div>
+
+                                    {/* Dropdown */}
+                                    {activeDropdown === menu.id && hasItems && (
+                                        <div className="absolute top-full left-0 bg-white text-gray-800 shadow-2xl min-w-[220px] z-[100] border border-gray-200 rounded-b-md overflow-hidden">
+                                            {menu.items.map((item, index) => {
+                                                const category = item.category;
+                                                if (!category) return null;
+                                                return (
+                                                    <Link
+                                                        key={index}
+                                                        to={`/?category_id=${category.id}`}
+                                                        className="block px-5 py-3 hover:bg-[#EDB917] hover:text-[#1B2631] transition-all text-sm font-bold border-b border-gray-100 last:border-b-0"
+                                                        onClick={() => setActiveDropdown(null)}
+                                                    >
+                                                        {category.name}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </nav>

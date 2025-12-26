@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship, backref
 from app.db.base_class import Base
 
 class Category(Base):
+    __tablename__ = "category"  # Explicit table name
+    
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)

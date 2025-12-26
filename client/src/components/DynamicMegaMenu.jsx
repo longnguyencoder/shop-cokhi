@@ -6,6 +6,7 @@ import api from '../api/axios';
 const DynamicMegaMenu = () => {
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+    const [customNavItems, setCustomNavItems] = useState([]);
     const [activeMenu, setActiveMenu] = useState(null);
 
     useEffect(() => {
@@ -17,6 +18,22 @@ const DynamicMegaMenu = () => {
                 ]);
                 setCategories(catRes.data);
                 setProducts(prodRes.data);
+
+                // Try to fetch custom menu
+                try {
+                    console.log('Fetching menu from /menus/main_nav...');
+                    const menuRes = await api.get('/menus/main_nav');
+                    console.log('Menu response:', menuRes.data);
+                    if (menuRes.data && menuRes.data.items) {
+                        console.log('Setting customNavItems:', menuRes.data.items);
+                        setCustomNavItems(menuRes.data.items);
+                    } else {
+                        console.log('No items in menu response');
+                    }
+                } catch (err) {
+                    console.error('Error fetching menu:', err);
+                    // Ignore 404, will fallback to default
+                }
             } catch (error) {
                 console.error('Error fetching menu data:', error);
             }
@@ -24,10 +41,16 @@ const DynamicMegaMenu = () => {
         fetchData();
     }, []);
 
-    // Get top-level categories (no parent)
-    const topCategories = categories.filter(cat => !cat.parent_id);
+    // Determine items to display: Custom Menu Items OR Top-level Categories
+    const displayItems = customNavItems.length > 0
+        ? customNavItems
+        : categories.filter(cat => !cat.parent_id);
 
-    // Get children of a category
+    console.log('customNavItems.length:', customNavItems.length);
+    console.log('displayItems:', displayItems);
+    console.log('Using custom menu?', customNavItems.length > 0);
+
+    // Get children of a category (from full category list)
     const getChildren = (parentId) => {
         return categories.filter(cat => cat.parent_id === parentId);
     };
@@ -61,7 +84,11 @@ const DynamicMegaMenu = () => {
                         </Link>
                     </li>
 
-                    {topCategories.map((category) => {
+                    {displayItems.map((item) => {
+                        // Normalize: item could be a MenuItem (with .category) or a raw Category
+                        const category = item.category || item;
+                        if (!category || !category.id) return null; // Skip invalid items
+
                         const children = getChildren(category.id);
                         const hasChildren = children.length > 0;
 

@@ -20,9 +20,11 @@ def login_access_token(
     """
     Token login, get an access token for future requests
     """
+    print(f"Login attempt for: {login_data.username}")
     user = user_repository.authenticate(
         db, email=login_data.username, password=login_data.password
     )
+    print(f"User authenticated: {user}")
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, ChevronDown, Package } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronDown, Package, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
 
 const Products = ({ onAddToCart }) => {
@@ -23,7 +23,7 @@ const Products = ({ onAddToCart }) => {
         page: parseInt(searchParams.get('page')) || 1
     });
 
-    const ITEMS_PER_PAGE = 20;
+    const ITEMS_PER_PAGE = 12;
 
     // Fetch data
     useEffect(() => {
@@ -51,8 +51,8 @@ const Products = ({ onAddToCart }) => {
                 if (filters.search) params.append('q', filters.search);
                 if (filters.category_id) params.append('category_id', filters.category_id);
                 if (filters.brand_id) params.append('brand_id', filters.brand_id);
-                params.append('skip', (filters.page - 1) * ITEMS_PER_PAGE);
-                params.append('limit', ITEMS_PER_PAGE);
+                // Fetch all matching products for client-side sorting/filtering/pagination
+                params.append('limit', 1000);
 
                 const res = await api.get(`/products/?${params.toString()}`);
                 let productsData = res.data;
@@ -84,8 +84,13 @@ const Products = ({ onAddToCart }) => {
                     }
                 });
 
-                setProducts(sortedProducts);
                 setTotalProducts(sortedProducts.length);
+
+                // Client-side pagination slice
+                const startIndex = (filters.page - 1) * ITEMS_PER_PAGE;
+                const paginatedProducts = sortedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+                setProducts(paginatedProducts);
             } catch (error) {
                 console.error('Error fetching products:', error);
             } finally {
@@ -105,7 +110,11 @@ const Products = ({ onAddToCart }) => {
     }, [filters]);
 
     const updateFilter = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+        setFilters(prev => ({
+            ...prev,
+            [key]: value,
+            page: key === 'page' ? value : 1
+        }));
     };
 
     const resetFilters = () => {
@@ -287,7 +296,7 @@ const Products = ({ onAddToCart }) => {
                                             <div className="aspect-square bg-gray-50 overflow-hidden">
                                                 {product.image_url ? (
                                                     <img
-                                                        src={product.image_url.startsWith('http') ? product.image_url : `http://localhost:8000${product.image_url}`}
+                                                        src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `http://localhost:8000${product.image_url}`}
                                                         alt={product.name}
                                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                                     />
@@ -304,7 +313,7 @@ const Products = ({ onAddToCart }) => {
                                                 <p className="text-xs text-gray-400 font-bold mb-3">SKU: {product.sku}</p>
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-lg font-black text-[#E31837]">
-                                                        {product.price.toLocaleString('vi-VN')}₫
+                                                        {product.price ? product.price.toLocaleString('vi-VN') + '₫' : 'LIÊN HỆ'}
                                                     </span>
                                                     {!product.in_stock && (
                                                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
@@ -385,4 +394,12 @@ const Products = ({ onAddToCart }) => {
     );
 };
 
-export default Products;
+import ErrorBoundary from '../components/ErrorBoundary';
+
+const ProductsWithBoundary = (props) => (
+    <ErrorBoundary>
+        <Products {...props} />
+    </ErrorBoundary>
+);
+
+export default ProductsWithBoundary;

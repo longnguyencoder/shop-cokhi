@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Package, FolderTree, Factory, LayoutGrid, ChevronRight, BarChart3, Settings, Users } from 'lucide-react';
+import { Package, FolderTree, Factory, LayoutGrid, ChevronRight, BarChart3, Settings, Users, Menu } from 'lucide-react';
 import { AdminProducts, AdminCategories, AdminUsers, AdminBrands } from './Components';
+import AdminMenus from './AdminMenus';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('products');
@@ -8,6 +9,7 @@ const AdminDashboard = () => {
     const menuItems = [
         { id: 'products', name: 'Sản phẩm', icon: Package },
         { id: 'categories', name: 'Danh mục', icon: FolderTree },
+        { id: 'menus', name: 'Menu', icon: Menu }, // Added Menu
         { id: 'users', name: 'Người dùng', icon: Users },
         { id: 'brands', name: 'Thương hiệu', icon: Factory },
         { id: 'stats', name: 'Thống kê', icon: BarChart3 },
@@ -59,6 +61,7 @@ const AdminDashboard = () => {
                     <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-2 min-h-[70vh]">
                         {activeTab === 'products' && <AdminProducts />}
                         {activeTab === 'categories' && <AdminCategories />}
+                        {activeTab === 'menus' && <AdminMenus />}
                         {activeTab === 'users' && <AdminUsers />}
                         {activeTab === 'brands' && <AdminBrands />}
                         {['stats', 'settings'].includes(activeTab) && (

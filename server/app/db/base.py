@@ -5,3 +5,4 @@ from app.models.user import User  # noqa
 from app.models.category import Category  # noqa
 from app.models.product import Product, ProductSpec, Brand  # noqa
 from app.models.order import Order, OrderItem, ProductInquiry  # noqa
+from app.models.menu import Menu, MenuItem  # noqa

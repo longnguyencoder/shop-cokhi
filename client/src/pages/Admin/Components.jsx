@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, FolderTree, Factory, Users, Plus, Edit, Trash2, ChevronDown, ChevronRight, Save, X, Upload } from 'lucide-react';
 import api from '../../api/axios';
+import Pagination from '../../components/Pagination';
 
 const AdminProducts = () => {
     const [products, setProducts] = useState([]);
@@ -9,6 +10,8 @@ const AdminProducts = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [activeTab, setActiveTab] = useState('all'); // 'all' or 'sale'
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const [formData, setFormData] = useState({
         name: '', sku: '', slug: '', description: '', price: '', in_stock: true,
@@ -35,9 +38,15 @@ const AdminProducts = () => {
     useEffect(() => { fetchData() }, []);
 
     // Filter products based on active tab
-    const displayedProducts = activeTab === 'sale'
+    const filteredProducts = activeTab === 'sale'
         ? products.filter(p => p.on_sale)
         : products;
+
+    // Pagination
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const displayedProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
@@ -167,6 +176,11 @@ const AdminProducts = () => {
                         ))}
                     </tbody>
                 </table>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => setCurrentPage(page)}
+                />
             </div>
 
             {isModalOpen && (
@@ -413,6 +427,8 @@ const AdminCategories = () => {
     const [editingCategory, setEditingCategory] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({ name: '', slug: '', description: '', parent_id: null, image_url: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const fetchCats = async () => {
         try {
@@ -466,7 +482,7 @@ const AdminCategories = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setFormData({ ...formData, image_url: res.data.image_url });
-            alert("Tải ảnh danh mục thành công!");
+            // alert("Tải ảnh danh mục thành công!");
             fetchCats();
         } catch (err) {
             alert('Lỗi khi upload ảnh');
@@ -493,104 +509,61 @@ const AdminCategories = () => {
         }
     };
 
+    // Pagination logic for Categories
+    const indexOfLastCat = currentPage * itemsPerPage;
+    const indexOfFirstCat = indexOfLastCat - itemsPerPage;
+    const currentCategories = categories.slice(indexOfFirstCat, indexOfLastCat);
+    const totalCatPages = Math.ceil(categories.length / itemsPerPage);
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-black text-[#1B2631] uppercase tracking-tighter italic">Quản lý Danh mục</h2>
-                <button
-                    onClick={() => { resetForm(); setIsModalOpen(true); }}
-                    className="bg-[#1B2631] text-[#EDB917] px-6 py-2.5 rounded font-black flex items-center gap-2 uppercase text-xs tracking-widest shadow-lg"
-                >
+                <h2 className="text-2xl font-black text-[#1B2631] uppercase tracking-tighter border-b-4 border-[#EDB917] pb-1">Quản lý Danh mục</h2>
+                <button onClick={() => { resetForm(); setIsModalOpen(true); }} className="bg-[#EDB917] hover:bg-[#1B2631] hover:text-[#EDB917] text-[#1B2631] px-6 py-3 rounded-lg font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-[#EDB917]/20 uppercase text-xs tracking-widest">
                     <Plus className="h-4 w-4" /> Thêm danh mục
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-xl p-8 border border-gray-100 overflow-y-auto max-h-[70vh]">
-                    <h3 className="font-black text-[#1B2631] uppercase mb-6 flex items-center gap-2">
-                        <FolderTree className="h-5 w-5 text-[#EDB917]" />
-                        Cấu trúc danh mục ({categories.length})
-                    </h3>
-                    <div className="space-y-4">
-                        {categories.filter(c => !c.parent_id).length === 0 && (
-                            <p className="text-center py-8 text-gray-400 font-medium italic">Chưa có danh mục nào</p>
-                        )}
-                        {categories.filter(c => !c.parent_id).map(root => (
-                            <div key={root.id} className="space-y-2">
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-[#EDB917] group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 bg-white rounded border flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                            {root.image_url ? (
-                                                <img src={root.image_url.startsWith('http') ? root.image_url : `http://localhost:8000${root.image_url}`} alt="" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <Package className="h-5 w-5 text-gray-200" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <span className="font-black text-[#1B2631] uppercase text-sm italic">{root.name}</span>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{root.slug}</p>
-                                        </div>
+            <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+                <table className="w-full text-left">
+                    <thead className="bg-[#1B2631] text-white uppercase text-[10px] tracking-widest font-black">
+                        <tr>
+                            <th className="px-6 py-4">Hình ảnh</th>
+                            <th className="px-6 py-4">Tên danh mục</th>
+                            <th className="px-6 py-4 text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {currentCategories.map(cat => (
+                            <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="h-12 w-12 bg-gray-50 rounded border flex items-center justify-center overflow-hidden">
+                                        {cat.image_url ? (
+                                            <img src={cat.image_url.startsWith('http') ? cat.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${cat.image_url}`} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <FolderTree className="h-6 w-6 text-gray-200" />
+                                        )}
                                     </div>
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                        <button onClick={() => handleEdit(root)} className="p-2 bg-white border border-gray-100 rounded-lg text-[#1B2631] hover:text-[#EDB917] hover:shadow-md transition-all">
-                                            <Edit className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(root.id)} className="p-2 bg-white border border-gray-100 rounded-lg text-[#E31837] hover:text-red-600 hover:shadow-md transition-all">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="font-bold text-[#1B2631] uppercase tracking-tighter">{cat.name}</div>
+                                    <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">{cat.slug}</div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex justify-center gap-3">
+                                        <button onClick={() => handleEdit(cat)} className="p-2.5 text-[#1B2631] hover:bg-[#EDB917]/20 rounded-full transition-all"><Edit className="h-4 w-4" /></button>
+                                        <button onClick={() => handleDelete(cat.id)} className="p-2.5 text-[#E31837] hover:bg-[#E31837]/10 rounded-full transition-all"><Trash2 className="h-4 w-4" /></button>
                                     </div>
-                                </div>
-                                <div className="pl-12 space-y-2">
-                                    {categories.filter(c => c.parent_id === root.id).map(child => (
-                                        <div key={child.id} className="flex items-center justify-between p-3 pl-4 bg-white border border-gray-100 rounded-lg group hover:border-[#EDB917]/30 transition-all">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 bg-gray-50 rounded border flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                                    {child.image_url ? (
-                                                        <img src={child.image_url.startsWith('http') ? child.image_url : `http://localhost:8000${child.image_url}`} alt="" className="h-full w-full object-cover" />
-                                                    ) : (
-                                                        <Package className="h-4 w-4 text-gray-200" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <span className="font-bold text-gray-600 text-sm">{child.name}</span>
-                                                    <p className="text-[9px] text-gray-300 font-bold uppercase tracking-widest">{child.slug}</p>
-                                                </div>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                                <button onClick={() => handleEdit(child)} className="text-[#1B2631] hover:text-[#EDB917]">
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button onClick={() => handleDelete(child.id)} className="text-[#E31837] hover:text-red-600">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
                         ))}
-                    </div>
-                </div>
-
-                <div className="bg-[#1B2631] p-8 rounded-xl shadow-2xl text-white self-start sticky top-8">
-                    <h3 className="font-black text-[#EDB917] uppercase mb-6 italic border-b border-[#EDB917]/20 pb-4 flex items-center gap-2">
-                        <Upload className="h-5 w-5" /> Ghi chú vận hành
-                    </h3>
-                    <ul className="space-y-6 text-sm">
-                        <li className="flex gap-4">
-                            <div className="h-6 w-6 bg-[#EDB917]/20 rounded flex-shrink-0 flex items-center justify-center font-black text-[#EDB917] text-xs">1</div>
-                            <p className="font-medium text-gray-400">Ảnh danh mục sẽ hiển thị trên trang chủ (lưới danh mục).</p>
-                        </li>
-                        <li className="flex gap-4">
-                            <div className="h-6 w-6 bg-[#EDB917]/20 rounded flex-shrink-0 flex items-center justify-center font-black text-[#EDB917] text-xs">2</div>
-                            <p className="font-medium text-gray-400">Xóa danh mục cha sẽ xóa các danh mục con liên quan (cascade).</p>
-                        </li>
-                        <li className="flex gap-4">
-                            <div className="h-6 w-6 bg-[#EDB917]/20 rounded flex-shrink-0 flex items-center justify-center font-black text-[#EDB917] text-xs">3</div>
-                            <p className="font-medium text-gray-400">Nên dùng ảnh tỷ lệ 1:1 hoặc 4:3 để hiển thị đẹp nhất.</p>
-                        </li>
-                    </ul>
-                </div>
+                    </tbody>
+                </table>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalCatPages}
+                    onPageChange={(page) => setCurrentPage(page)}
+                />
             </div>
 
             {isModalOpen && (
@@ -712,6 +685,8 @@ const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
     const [formData, setFormData] = useState({ email: '', password: '', full_name: '', phone_number: '', address: '', is_superuser: false });
 
     const fetchUsers = async () => {
@@ -771,57 +746,56 @@ const AdminUsers = () => {
         setFormData({ email: '', password: '', full_name: '', phone_number: '', address: '', is_superuser: false });
     };
 
+    // Pagination logic for Users
+    const indexOfLastUser = currentPage * itemsPerPage;
+    const indexOfFirstUser = indexOfLastUser - itemsPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+    const totalUserPages = Math.ceil(users.length / itemsPerPage);
+
     return (
-        <div className="p-8">
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-[#1B2631] uppercase tracking-tighter italic">Quản lý Người dùng</h2>
-                <button onClick={() => { resetForm(); setIsModalOpen(true); }} className="bg-[#EDB917] hover:bg-[#d4a615] text-[#1B2631] px-6 py-2.5 rounded font-black flex items-center gap-2 uppercase text-xs tracking-widest shadow-lg">
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-black text-[#1B2631] uppercase tracking-tighter border-b-4 border-[#EDB917] pb-1">Quản lý người dùng</h2>
+                <button onClick={() => { setEditingUser(null); setFormData({ email: '', password: '', full_name: '', phone_number: '', address: '', is_superuser: false }); setIsModalOpen(true); }} className="bg-[#EDB917] hover:bg-[#1B2631] hover:text-[#EDB917] text-[#1B2631] px-6 py-3 rounded-lg font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-[#EDB917]/20 uppercase text-xs tracking-widest">
                     <Plus className="h-4 w-4" /> Thêm người dùng
                 </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-[#1B2631] text-white">
+            <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+                <table className="w-full text-left">
+                    <thead className="bg-[#1B2631] text-white uppercase text-[10px] tracking-widest font-black">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Email</th>
-                            <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Họ tên</th>
-                            <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">SĐT</th>
-                            <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Vai trò</th>
-                            <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Trạng thái</th>
-                            <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-widest">Thao tác</th>
+                            <th className="px-6 py-4">Họ và tên</th>
+                            <th className="px-6 py-4">Email</th>
+                            <th className="px-6 py-4">Thứ tự quản trị</th>
+                            <th className="px-6 py-4 text-center">Hành động</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {users.map(user => (
+                    <tbody className="divide-y divide-gray-50">
+                        {currentUsers.map(user => (
                             <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 text-sm font-bold text-gray-600">{user.email}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-gray-800">{user.full_name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{user.phone_number}</td>
+                                <td className="px-6 py-4 font-bold text-[#1B2631] uppercase tracking-tighter">{user.full_name}</td>
+                                <td className="px-6 py-4 text-xs font-black text-gray-400">{user.email}</td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${user.is_superuser ? 'bg-[#E31837] text-white' : 'bg-gray-100 text-gray-600'}`}>
-                                        {user.is_superuser ? 'Admin' : 'Khách hàng'}
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${user.is_superuser ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                        {user.is_superuser ? 'Quản trị viên' : 'Khách hàng'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <button onClick={() => handleToggleActive(user.id)} className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${user.is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}>
-                                        {user.is_active ? 'Hoạt động' : 'Vô hiệu'}
-                                    </button>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => handleEdit(user)} className="text-[#1B2631] hover:text-[#EDB917] transition-colors">
-                                            <Edit className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={() => handleDelete(user.id)} className="text-[#E31837] hover:text-red-600 transition-colors">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                    <div className="flex justify-center gap-3">
+                                        <button onClick={() => { setEditingUser(user); setFormData({ ...user, password: '' }); setIsModalOpen(true); }} className="p-2.5 text-[#1B2631] hover:bg-[#EDB917]/20 rounded-full transition-all"><Edit className="h-4 w-4" /></button>
+                                        <button onClick={() => handleDelete(user.id)} className="p-2.5 text-[#E31837] hover:bg-[#E31837]/10 rounded-full transition-all"><Trash2 className="h-4 w-4" /></button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalUserPages}
+                    onPageChange={(page) => setCurrentPage(page)}
+                />
             </div>
 
             {isModalOpen && (
@@ -886,6 +860,8 @@ const AdminBrands = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBrand, setEditingBrand] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
     const [formData, setFormData] = useState({ name: '', code: '', logo_url: '', description: '' });
 
     const fetchBrands = async () => {
@@ -929,7 +905,7 @@ const AdminBrands = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setFormData(prev => ({ ...prev, logo_url: res.data.logo_url }));
-            alert("Tải logo thành công!");
+            // alert("Tải logo thành công!");
             fetchBrands();
         } catch (err) {
             alert("Lỗi khi upload logo.");
@@ -959,41 +935,58 @@ const AdminBrands = () => {
         setFormData({ name: '', code: '', logo_url: '', description: '' });
     };
 
+    // Pagination logic for Brands
+    const indexOfLastBrand = currentPage * itemsPerPage;
+    const indexOfFirstBrand = indexOfLastBrand - itemsPerPage;
+    const currentBrands = brands.slice(indexOfFirstBrand, indexOfLastBrand);
+    const totalBrandPages = Math.ceil(brands.length / itemsPerPage);
+
     return (
-        <div className="p-8">
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-black text-[#1B2631] uppercase tracking-tighter italic">Quản lý Thương hiệu</h2>
-                <button onClick={() => { resetForm(); setIsModalOpen(true); }} className="bg-[#EDB917] hover:bg-[#d4a615] text-[#1B2631] px-6 py-2.5 rounded font-black flex items-center gap-2 uppercase text-xs tracking-widest shadow-lg">
-                    <Plus className="h-4 w-4" /> Thêm thương hiệu
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-black text-[#1B2631] uppercase tracking-tighter border-b-8 border-[#EDB917] pb-1">Thương hiệu đối tác</h2>
+                <button onClick={() => { setEditingBrand(null); setFormData({ name: '', code: '', logo_url: '', description: '' }); setIsModalOpen(true); }} className="bg-[#EDB917] hover:bg-[#1B2631] hover:text-[#EDB917] text-[#1B2631] px-8 py-4 rounded-xl font-black transition-all flex items-center gap-3 shadow-xl hover:shadow-[#EDB917]/20 uppercase text-sm tracking-widest group">
+                    <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" /> Thêm thương hiệu
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {brands.map(brand => (
-                    <div key={brand.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all">
-                        <div className="h-32 bg-gray-50 flex items-center justify-center p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {currentBrands.map(brand => (
+                    <div key={brand.id} className="group relative bg-white rounded-2xl shadow-premium hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:-translate-y-2 flex flex-col h-full">
+                        <div className="aspect-[16/9] bg-gray-50 flex items-center justify-center p-8 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#1B2631]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             {brand.logo_url ? (
-                                <img src={brand.logo_url.startsWith('http') ? brand.logo_url : `http://localhost:8000${brand.logo_url}`} alt={brand.name} className="max-h-full max-w-full object-contain" />
+                                <img src={brand.logo_url.startsWith('http') ? brand.logo_url : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${brand.logo_url}`} alt={brand.name} className="max-h-full max-w-full object-contain filter group-hover:scale-110 transition-transform duration-700" />
                             ) : (
                                 <Factory className="h-16 w-16 text-gray-200" />
                             )}
                         </div>
-                        <div className="p-4">
-                            <h3 className="font-black text-[#1B2631] uppercase text-sm mb-1">{brand.name}</h3>
-                            {brand.code && <p className="text-xs text-gray-400 font-bold mb-2">Mã: {brand.code}</p>}
-                            {brand.description && <p className="text-xs text-gray-600 line-clamp-2 mb-4">{brand.description}</p>}
-                            <div className="flex gap-2">
-                                <button onClick={() => handleEdit(brand)} className="flex-1 bg-[#1B2631] hover:bg-[#2c3e50] text-white py-2 rounded text-xs font-black uppercase transition-all flex items-center justify-center gap-1">
-                                    <Edit className="h-3 w-3" /> Sửa
-                                </button>
-                                <button onClick={() => handleDelete(brand.id)} className="bg-[#E31837] hover:bg-red-700 text-white px-3 py-2 rounded transition-all">
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                        <div className="p-6 flex flex-col flex-1">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-black text-[#1B2631] uppercase tracking-tighter">{brand.name}</h3>
+                                    <span className="text-[10px] font-black text-[#EDB917] bg-[#EDB917]/10 px-2 py-0.5 rounded uppercase tracking-widest">{brand.code}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => { setEditingBrand(brand); setFormData(brand); setIsModalOpen(true); }} className="p-2.5 bg-gray-50 text-[#1B2631] hover:bg-[#EDB917] hover:text-[#1B2631] rounded-xl transition-all shadow-sm"><Edit className="h-4 w-4" /></button>
+                                    <button onClick={() => handleDelete(brand.id)} className="p-2.5 bg-gray-50 text-[#E31837] hover:bg-[#E31837] hover:text-white rounded-xl transition-all shadow-sm"><Trash2 className="h-4 w-4" /></button>
+                                </div>
+                            </div>
+                            <p className="text-gray-500 text-sm font-medium line-clamp-3 leading-relaxed mb-4 flex-1">{brand.description || 'Không có mô tả cho thương hiệu này.'}</p>
+                            <div className="pt-4 border-t border-gray-50 flex justify-between items-center text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <span>ID: #{brand.id}</span>
+                                <span className="flex items-center gap-1">Xem chi tiết <ChevronRight className="h-3 w-3" /></span>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalBrandPages}
+                onPageChange={(page) => setCurrentPage(page)}
+            />
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

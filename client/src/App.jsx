@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { ShoppingCart, LogIn, User, Search, Package, Factory, Menu, Phone, ChevronRight, LayoutGrid, LogOut } from 'lucide-react'
 import api from './api/axios'
 import { getMe, logout } from './api/auth'
@@ -308,23 +309,23 @@ function App() {
                       SALE
                     </div>
 
-                    <div className="h-64 bg-white relative overflow-hidden flex items-center justify-center p-10 border-b border-gray-50 text-gray-300">
+                    <Link to={`/product/${product.slug}`} className="h-64 bg-white relative overflow-hidden flex items-center justify-center p-10 border-b border-gray-50 text-gray-300 block">
                       <Package className="h-32 w-32 group-hover:scale-125 group-hover:text-primary/10 transition-all duration-700 ease-out" />
                       <div className="absolute top-4 left-4">
                         <span className="bg-accent text-white text-[9px] font-black px-2 py-1 uppercase tracking-widest rounded-sm">
                           {product.in_stock ? 'Mới về' : 'Hết hàng'}
                         </span>
                       </div>
-                    </div>
+                    </Link>
 
                     <div className="p-6 flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-[10px] text-gray-300 font-black uppercase tracking-widest">{product.sku}</span>
                         <span className="text-[10px] text-primary font-black uppercase tracking-widest">In Stock</span>
                       </div>
-                      <h3 className="font-black text-navy group-hover:text-primary transition-colors mb-4 line-clamp-2 min-h-[3rem] leading-tight uppercase text-sm tracking-tight italic">
+                      <Link to={`/product/${product.slug}`} className="font-black text-navy group-hover:text-primary transition-colors mb-4 line-clamp-2 min-h-[3rem] leading-tight uppercase text-sm tracking-tight italic block">
                         {product.name}
-                      </h3>
+                      </Link>
                       <div className="mt-auto">
                         <div className="text-2xl font-black text-accent mb-6 pt-4 border-t border-gray-50">
                           {product.price > 0 ? `${product.price.toLocaleString()} VNĐ` : 'LIÊN HỆ'}
