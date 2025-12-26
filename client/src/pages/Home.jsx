@@ -8,6 +8,7 @@ import BrandShowcase from '../components/BrandShowcase';
 import CategoryGrid from '../components/CategoryGrid';
 import ProductCarousel from '../components/ProductCarousel';
 import ProductCard from '../components/ProductCard';
+import { ProductSkeleton } from '../components/Skeleton';
 
 const Home = ({ onAddToCart }) => {
     const [searchParams] = useSearchParams();
@@ -123,16 +124,27 @@ const Home = ({ onAddToCart }) => {
 
             {/* New Products Carousel */}
             <div className="container mx-auto px-4">
-                <ProductCarousel
-                    title="Sản phẩm mới nhất"
-                    products={newProducts}
-                    viewAllLink="/products"
-                    onAddToCart={onAddToCart}
-                />
+                {loading ? (
+                    <div className="py-12">
+                        <div className="h-8 w-48 bg-gray-200 animate-pulse rounded mb-8"></div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[...Array(4)].map((_, i) => (
+                                <ProductSkeleton key={i} />
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <ProductCarousel
+                        title="Sản phẩm mới nhất"
+                        products={newProducts}
+                        viewAllLink="/products"
+                        onAddToCart={onAddToCart}
+                    />
+                )}
             </div>
 
             {/* Sale Products Carousel */}
-            {saleProducts.length > 0 && (
+            {!loading && saleProducts.length > 0 && (
                 <div className="container mx-auto px-4">
                     <ProductCarousel
                         title="Sản phẩm khuyến mãi"

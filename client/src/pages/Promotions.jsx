@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Percent, TrendingDown, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
+import SITE_CONFIG from '../config/site';
+import { ProductSkeleton } from '../components/Skeleton';
 
 const Promotions = ({ onAddToCart }) => {
     const [products, setProducts] = useState([]);
@@ -59,9 +61,10 @@ const Promotions = ({ onAddToCart }) => {
 
                 {/* Loading */}
                 {loading && (
-                    <div className="text-center py-20">
-                        <div className="inline-block h-12 w-12 border-4 border-[#E31837] border-t-transparent rounded-full animate-spin"></div>
-                        <p className="mt-4 text-gray-600 font-bold">Đang tải khuyến mãi...</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {[...Array(8)].map((_, i) => (
+                            <ProductSkeleton key={i} />
+                        ))}
                     </div>
                 )}
 
@@ -99,9 +102,9 @@ const Promotions = ({ onAddToCart }) => {
                                             <div className="aspect-square bg-gray-50 overflow-hidden relative">
                                                 {product.image_url ? (
                                                     <img
-                                                        src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `http://localhost:8000${product.image_url}`}
+                                                        src={(product.image_url && typeof product.image_url === 'string' && product.image_url.startsWith('http')) ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">

@@ -17,8 +17,33 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        if (searchTerm.length < 2) {
+            setSuggestions([]);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const res = await api.get('/products/', {
+                    params: { q: searchTerm, limit: 10 }
+                });
+                setSuggestions(res.data);
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -138,7 +163,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                     </Link>
 
                     {/* Search Bar */}
-                    <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden sm:block">
+                    <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden sm:block relative">
                         <div className="relative group">
                             <input
                                 type="text"
@@ -146,6 +171,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                                 className="w-full pl-6 pr-14 py-3 bg-gray-50 border-2 border-gray-100 rounded-full focus:border-primary focus:bg-white outline-none transition-all font-bold text-sm shadow-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => searchTerm.length >= 2 && setSuggestions(prev => prev)}
                             />
                             <button
                                 type="submit"
@@ -154,6 +180,52 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
                                 <Search className="h-4 w-4" />
                             </button>
                         </div>
+
+                        {/* Search Suggestions */}
+                        {searchTerm.length >= 2 && (suggestions.length > 0 || isSearching) && (
+                            <div className="absolute top-full left-0 w-full bg-white mt-2 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                                {isSearching ? (
+                                    <div className="p-4 flex items-center justify-center gap-3">
+                                        <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Đang tìm kiếm...</span>
+                                    </div>
+                                ) : (
+                                    <div className="max-h-[400px] overflow-y-auto pt-2">
+                                        <div className="px-4 py-2 border-b border-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Sản phẩm gợi ý</div>
+                                        {suggestions.map((p) => (
+                                            <Link
+                                                key={p.id}
+                                                to={`/product/${p.slug}`}
+                                                className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 transition-colors group/item"
+                                                onClick={() => {
+                                                    setSuggestions([]);
+                                                    setSearchTerm('');
+                                                }}
+                                            >
+                                                <div className="h-12 w-12 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden border border-gray-100 p-1">
+                                                    {p.image_url ? (
+                                                        <img src={p.image_url.startsWith('http') ? p.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${p.image_url}`} alt="" className="h-full w-full object-contain" />
+                                                    ) : (
+                                                        <Package className="h-6 w-6 text-gray-200" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-black text-navy uppercase truncate group-hover/item:text-primary transition-colors italic">{p.name}</div>
+                                                    <div className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">{p.sku} | {p.price?.toLocaleString()} ₫</div>
+                                                </div>
+                                                <ChevronRight className="h-4 w-4 text-gray-300 group-hover/item:translate-x-1 transition-transform" />
+                                            </Link>
+                                        ))}
+                                        <button
+                                            onClick={handleSearch}
+                                            className="w-full p-4 bg-gray-50 text-center text-xs font-black text-navy uppercase tracking-widest hover:bg-primary transition-colors"
+                                        >
+                                            Xem tất cả kết quả
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </form>
 
                     <div className="flex items-center space-x-2 md:space-x-4">

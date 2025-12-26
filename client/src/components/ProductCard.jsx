@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Package, Info } from 'lucide-react';
 import SITE_CONFIG from '../config/site';
+import QuickViewModal from './QuickViewModal';
 
 const ProductCard = ({ product, onAddToCart }) => {
+    const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+
     return (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-premium transition-all group flex flex-col relative translate-y-0 hover:-translate-y-2 h-full">
             <Link to={`/product/${product.slug}`} className="absolute inset-0 z-10"></Link>
@@ -30,6 +33,15 @@ const ProductCard = ({ product, onAddToCart }) => {
                 ) : (
                     <Package className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 text-gray-100 group-hover:scale-110 group-hover:text-primary/20 transition-all duration-700 ease-out" />
                 )}
+
+                {/* Quick View Button */}
+                <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsQuickViewOpen(true); }}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md text-navy px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.1em] shadow-2xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-20 flex items-center gap-2 border border-gray-100 hover:bg-primary transition-colors italic"
+                >
+                    <Info className="h-4 w-4 text-primary group-hover:text-navy" />
+                    XEM NHANH
+                </button>
             </div>
 
             <div className="p-6 md:p-8 flex-1 flex flex-col relative bg-white border-t border-gray-50">
@@ -84,8 +96,16 @@ const ProductCard = ({ product, onAddToCart }) => {
                     </div>
                 </div>
             </div>
+
+            <QuickViewModal
+                product={product}
+                isOpen={isQuickViewOpen}
+                onClose={() => setIsQuickViewOpen(false)}
+                onAddToCart={onAddToCart}
+            />
         </div>
     );
 };
 
 export default ProductCard;
+

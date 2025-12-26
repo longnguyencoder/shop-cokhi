@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, ChevronDown, Package, ShoppingCart } from 'lucide-react';
 import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
+import { ProductSkeleton } from '../components/Skeleton';
 
 const Products = ({ onAddToCart }) => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -139,10 +140,12 @@ const Products = ({ onAddToCart }) => {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl md:text-4xl font-black text-[#1B2631] uppercase tracking-tight mb-2">
-                        Tất cả sản phẩm
+                        {filters.category_id ?
+                            `Danh mục: ${categories.find(c => c.id === parseInt(filters.category_id))?.name || '...'}` :
+                            'Tất cả sản phẩm'}
                     </h1>
                     <p className="text-gray-600 font-bold">
-                        Tìm thấy {totalProducts} sản phẩm
+                        Hiển thị {totalProducts} sản phẩm chất lượng cao
                     </p>
                 </div>
 
@@ -276,9 +279,10 @@ const Products = ({ onAddToCart }) => {
 
                         {/* Loading */}
                         {loading && (
-                            <div className="text-center py-20">
-                                <div className="inline-block h-12 w-12 border-4 border-[#EDB917] border-t-transparent rounded-full animate-spin"></div>
-                                <p className="mt-4 text-gray-600 font-bold">Đang tải sản phẩm...</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {[...Array(8)].map((_, i) => (
+                                    <ProductSkeleton key={i} />
+                                ))}
                             </div>
                         )}
 

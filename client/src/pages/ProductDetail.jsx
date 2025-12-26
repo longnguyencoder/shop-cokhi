@@ -138,6 +138,16 @@ const ProductDetail = ({ onAddToCart }) => {
             <nav className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-8 flex gap-2 items-center">
                 <Link to="/" className="hover:text-primary">Trang chủ</Link>
                 <span>/</span>
+                <Link to="/products" className="hover:text-primary">Sản phẩm</Link>
+                {product.category && (
+                    <>
+                        <span>/</span>
+                        <Link to={`/products?category_id=${product.category.id}`} className="hover:text-primary">
+                            {product.category.name}
+                        </Link>
+                    </>
+                )}
+                <span>/</span>
                 <span className="text-navy">{product.name}</span>
             </nav>
 
