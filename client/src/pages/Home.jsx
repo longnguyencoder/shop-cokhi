@@ -60,6 +60,42 @@ const Home = ({ onAddToCart }) => {
             <SEO
                 title="Trang chủ"
                 description="TEKKO Việt Nam - Đơn vị hàng đầu cung cấp giải pháp dụng cụ cắt gọt chính xác, các loại mũi phay, mũi khoan, chip tiện chính hãng từ Kyocera, Guhring, Winstar."
+                schema={{
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {
+                            "@type": "Organization",
+                            "@id": `${window.location.origin}/#organization`,
+                            "name": SITE_CONFIG.business.name,
+                            "url": window.location.origin,
+                            "logo": {
+                                "@type": "ImageObject",
+                                "url": `${window.location.origin}/logo.png`
+                            },
+                            "contactPoint": {
+                                "@type": "ContactPoint",
+                                "telephone": SITE_CONFIG.contact.phone,
+                                "contactType": "customer service",
+                                "areaServed": "VN",
+                                "availableLanguage": "Vietnamese"
+                            }
+                        },
+                        {
+                            "@type": "WebSite",
+                            "@id": `${window.location.origin}/#website`,
+                            "url": window.location.origin,
+                            "name": SITE_CONFIG.business.name,
+                            "publisher": {
+                                "@id": `${window.location.origin}/#organization`
+                            },
+                            "potentialAction": {
+                                "@type": "SearchAction",
+                                "target": `${window.location.origin}/?q={search_term_string}`,
+                                "query-input": "required name=search_term_string"
+                            }
+                        }
+                    ]
+                }}
             />
 
             {/* SEO Hidden H1 */}

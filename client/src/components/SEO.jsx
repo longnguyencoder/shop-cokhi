@@ -5,7 +5,8 @@ const SEO = ({
     title,
     description = "TEKKO - Chuyên cung cấp dụng cụ cơ khí chính xác, mũi phay, mũi khoan, chip tiện từ các thương hiệu hàng đầu như Kyocera, Guhring, Winstar.",
     ogImage = "/logo.png",
-    ogType = 'website'
+    ogType = 'website',
+    schema = null
 }) => {
     const location = useLocation();
     const siteName = "TEKKO - Dụng cụ cơ khí chính xác";
@@ -42,7 +43,7 @@ const SEO = ({
         updateMeta('og:site_name', siteName);
         updateMeta('og:title', fullTitle);
         updateMeta('og:description', description);
-        updateMeta('og:image', ogImage);
+        updateMeta('og:image', ogImage.startsWith('http') ? ogImage : `${window.location.origin}${ogImage}`);
         updateMeta('og:type', ogType);
         updateMeta('og:url', window.location.href);
 
@@ -50,7 +51,7 @@ const SEO = ({
         updateMeta('twitter:card', 'summary_large_image');
         updateMeta('twitter:title', fullTitle);
         updateMeta('twitter:description', description);
-        updateMeta('twitter:image', ogImage);
+        updateMeta('twitter:image', ogImage.startsWith('http') ? ogImage : `${window.location.origin}${ogImage}`);
 
         // Canonical URL
         let canonical = document.querySelector('link[rel="canonical"]');
@@ -61,7 +62,22 @@ const SEO = ({
         }
         canonical.setAttribute('href', window.location.href);
 
-    }, [title, description, ogImage, ogType, location]);
+        // JSON-LD Schema
+        if (schema) {
+            let script = document.getElementById('search-schema');
+            if (!script) {
+                script = document.createElement('script');
+                script.id = 'search-schema';
+                script.type = 'application/ld+json';
+                document.head.appendChild(script);
+            }
+            script.text = JSON.stringify(schema);
+        } else {
+            const script = document.getElementById('search-schema');
+            if (script) script.remove();
+        }
+
+    }, [title, description, ogImage, ogType, location, schema]);
 
     return null; // This component doesn't render anything
 };

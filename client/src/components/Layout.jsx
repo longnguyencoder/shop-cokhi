@@ -6,6 +6,7 @@ import { getMe, logout } from '../api/auth';
 import AuthModal from './AuthModal';
 import CartDrawer from './CartDrawer';
 import Footer from './Footer';
+import FloatingContact from './FloatingContact';
 import SITE_CONFIG from '../config/site';
 import zaloIcon from '../assets/zalo.png';
 
@@ -410,6 +411,7 @@ const Layout = ({ cartItems, onUpdateQuantity, onRemoveItem, user, onAuthSuccess
 
             <Outlet />
 
+            <FloatingContact />
             <Footer categories={categories} />
         </div>
     );

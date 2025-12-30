@@ -18,8 +18,6 @@ const ProductDetail = ({ onAddToCart }) => {
     const [zoomPos, setZoomPos] = useState({ x: 0, y: 0, mouseX: 0, mouseY: 0 });
     const [isZooming, setIsZooming] = useState(false);
 
-    console.log("ProductDetail Rendering. Slug:", slug, "Loading:", loading, "Product:", product);
-
     useEffect(() => {
         const fetchProduct = async () => {
             setLoading(true);
@@ -51,49 +49,63 @@ const ProductDetail = ({ onAddToCart }) => {
         fetchProduct();
     }, [slug]);
 
-    // Product Schema Markup
-    useEffect(() => {
-        if (!product) return;
+    // Construct Schema
+    const imageUrl = (product && product.image_url && typeof product.image_url === 'string')
+        ? (product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`)
+        : '';
 
-        const imageUrl = (product.image_url && typeof product.image_url === 'string')
-            ? (product.image_url.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`)
-            : '';
-
-        const schema = {
-            "@context": "https://schema.org/",
-            "@type": "Product",
-            "name": product.name,
-            "image": imageUrl ? [imageUrl] : [],
-            "description": product.description || `Mua ${product.name} chính hãng tại Tekko.`,
-            "sku": product.sku,
-            "mpn": product.sku,
-            "brand": {
-                "@type": "Brand",
-                "name": product.brand?.name || "Generic"
-            },
-            "offers": {
-                "@type": "Offer",
-                "url": window.location.href,
-                "priceCurrency": "VND",
-                "price": product.sale_price || product.price,
-                "availability": product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                "itemCondition": "https://schema.org/NewCondition",
-                "seller": {
-                    "@type": "Organization",
-                    "name": SITE_CONFIG.business.name
+    const schema = product ? {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Product",
+                "name": product.name,
+                "image": imageUrl ? [imageUrl] : [],
+                "description": product.description || `Mua ${product.name} chính hãng tại Tekko.`,
+                "sku": product.sku,
+                "mpn": product.sku,
+                "brand": {
+                    "@type": "Brand",
+                    "name": product.brand?.name || "Generic"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "url": window.location.href,
+                    "priceCurrency": "VND",
+                    "price": product.sale_price || product.price,
+                    "availability": product.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "itemCondition": "https://schema.org/NewCondition",
+                    "seller": {
+                        "@type": "Organization",
+                        "name": SITE_CONFIG.business.name
+                    }
                 }
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Trang chủ",
+                        "item": window.location.origin
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "Sản phẩm",
+                        "item": `${window.location.origin}/products`
+                    },
+                    ...(product.category ? [{
+                        "@type": "ListItem",
+                        "position": 3,
+                        "name": product.category.name,
+                        "item": `${window.location.origin}/products?category_id=${product.category.id}`
+                    }] : [])
+                ]
             }
-        };
-
-        const script = document.createElement('script');
-        script.type = "application/ld+json";
-        script.text = JSON.stringify(schema);
-        document.head.appendChild(script);
-
-        return () => {
-            document.head.removeChild(script);
-        };
-    }, [product]);
+        ]
+    } : null;
 
     const handleMouseMove = (e) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -138,7 +150,8 @@ const ProductDetail = ({ onAddToCart }) => {
             <SEO
                 title={product.name}
                 description={product.description || `Mua ${product.name} chính hãng tại TEKKO. Dụng cụ cơ khí chính xác chất lượng cao, nhập khẩu 100%.`}
-                ogImage={product.image_url?.startsWith('http') ? product.image_url : `${SITE_CONFIG.api.baseUrl}${product.image_url}`}
+                ogImage={imageUrl}
+                schema={schema}
             />
             {/* Breadcrumb */}
             <nav className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-8 flex gap-2 items-center">

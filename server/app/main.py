@@ -5,8 +5,14 @@ from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.exceptions import info_exception_handler, business_exception_handler, BusinessException
 from app.db import base  # Ensure all models are loaded
+from app.core import socket_manager # Import socket manager
+import socketio # Import socketio library
 
-app = FastAPI(
+# Rename to 'application' or 'fastapi_app' to distinguish, keeping 'app' as the final export for Uvicorn if needed
+# But usually uvicorn in run_server.bat runs 'app.main:app'.
+# So I will rename the FastAPI instance to 'fastapi_app' and the final ASGI app to 'app'.
+
+fastapi_app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     description="Backend for Mechanical Electronics E-commerce Shop",
@@ -15,7 +21,7 @@ app = FastAPI(
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
+    fastapi_app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.BACKEND_CORS_ORIGINS,
         allow_credentials=True,
@@ -23,21 +29,27 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+fastapi_app.include_router(api_router, prefix=settings.API_V1_STR)
 
 # Mount Static Files
 import os
 if not os.path.exists("static/uploads"):
     os.makedirs("static/uploads")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Register Exception Handlers
-app.add_exception_handler(Exception, info_exception_handler)
-app.add_exception_handler(BusinessException, business_exception_handler)
+fastapi_app.add_exception_handler(Exception, info_exception_handler)
+fastapi_app.add_exception_handler(BusinessException, business_exception_handler)
 
-@app.get("/")
+@fastapi_app.get("/")
 def root():
     return {"message": "Welcome to Mechanical Electronics Shop API", "docs": "/docs"}
+
+# ... (sitemap function needs @fastapi_app decorator) ...
+
+# Wrap FastAPI with Socket.IO
+# We need to import 'app' from main in run_server, so we export 'app'.
+app = socketio.ASGIApp(socket_manager.sio, other_asgi_app=fastapi_app)
 
 from fastapi import Response, Depends
 from sqlalchemy.orm import Session
@@ -46,7 +58,7 @@ from app.models.product import Product
 from app.models.category import Category
 from datetime import datetime
 
-@app.get("/sitemap.xml", response_class=Response)
+@fastapi_app.get("/sitemap.xml", response_class=Response)
 def get_sitemap(db: Session = Depends(deps.get_db)):
     base_url = "https://tekko.vn"
     

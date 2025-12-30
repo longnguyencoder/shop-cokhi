@@ -4,3 +4,4 @@ from .product import Product, ProductCreate, ProductUpdate, ProductSpec, Product
 from .category import Category, CategoryCreate, CategoryUpdate, CategoryWithChildren
 from .order import Order, OrderCreate, OrderItem, OrderItemCreate, ProductInquiry, ProductInquiryCreate
 from . import menu
+from .cart import CartItem, CartItemCreate, CartItemUpdate

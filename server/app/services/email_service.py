@@ -52,3 +52,72 @@ async def send_reset_password_email(email_to: str, email: str, token: str) -> No
         subject_template=subject,
         html_template=content,
     )
+
+async def send_new_order_email(order: Any) -> None:
+    """
+    Send email to admin when a new order is placed.
+    """
+    project_name = settings.PROJECT_NAME
+    subject = f"{project_name} - New Order #{order.id}"
+    email_to = settings.MAIL_DEFAULT_SENDER # Send to admin
+    
+    # Format items list
+    items_html = "<ul>"
+    for item in order.items:
+        # Assuming product relationship is loaded
+        product_name = item.product.name if item.product else "Product"
+        items_html += f"<li>{product_name} - Qty: {item.quantity} - Price: {item.price_at_purchase:,.0f} VND</li>"
+    items_html += "</ul>"
+    
+    content = f"""
+        <h2>New Order Received #{order.id}</h2>
+        <p>You have received a new order from <b>{order.customer_name}</b>.</p>
+        <h3>Customer Details:</h3>
+        <p>
+            Name: {order.customer_name}<br>
+            Phone: {order.customer_phone}<br>
+            Email: {order.customer_email}<br>
+            Address: {order.shipping_address}
+        </p>
+        <h3>Order Items:</h3>
+        {items_html}
+        <p><b>Total Amount: {order.total_amount:,.0f} VND</b></p>
+        <p>Please check the admin panel for more details.</p>
+    """
+    
+    await send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=content,
+    )
+
+async def send_order_confirmation_email(order: Any) -> None:
+    """
+    Send confirmation email to customer.
+    """
+    project_name = settings.PROJECT_NAME
+    subject = f"{project_name} - Order Confirmation #{order.id}"
+    email_to = order.customer_email
+    
+    items_html = "<ul>"
+    for item in order.items:
+        product_name = item.product.name if item.product else "Product"
+        items_html += f"<li>{product_name} - Qty: {item.quantity} - Price: {item.price_at_purchase:,.0f} VND</li>"
+    items_html += "</ul>"
+    
+    content = f"""
+        <h2>Thank you for your order!</h2>
+        <p>Hello {order.customer_name},</p>
+        <p>We have received your order <b>#{order.id}</b> and are processing it.</p>
+        <h3>Order Summary:</h3>
+        {items_html}
+        <p><b>Total: {order.total_amount:,.0f} VND</b></p>
+        <p>We will contact you shortly to confirm delivery details.</p>
+        <p>Best regards,<br>{project_name} Team</p>
+    """
+    
+    await send_email(
+        email_to=email_to,
+        subject_template=subject,
+        html_template=content,
+    )

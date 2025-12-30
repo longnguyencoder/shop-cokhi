@@ -1,11 +1,12 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShoppingCart, Check, Truck, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const QuickViewModal = ({ product, isOpen, onClose, onAddToCart }) => {
     if (!isOpen || !product) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-[#1B2631]/80 backdrop-blur-md" onClick={onClose}></div>
             <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col md:flex-row max-h-[90vh]">
@@ -84,7 +85,8 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

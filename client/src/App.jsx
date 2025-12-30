@@ -3,10 +3,20 @@ import { Link } from 'react-router-dom'
 import { ShoppingCart, LogIn, User, Search, Package, Factory, Menu, Phone, ChevronRight, LayoutGrid, LogOut } from 'lucide-react'
 import api from './api/axios'
 import { getMe, logout } from './api/auth'
+import { getCart, addToCart, updateCartItem, removeFromCart, clearCart } from './api/cart'
 import AuthModal from './components/AuthModal'
 import CartDrawer from './components/CartDrawer'
 import DynamicMegaMenu from './components/DynamicMegaMenu'
 import SITE_CONFIG from './config/site'
+import AdminLayout from './layouts/AdminLayout'
+import AdminDashboard from './pages/Admin/Dashboard'
+import AdminOrders from './pages/admin/AdminOrders'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { io } from 'socket.io-client' // Import socket
+import config from './config' // Import config
+
+// The structure is Main.jsx -> Router -> App.jsx.
+// But usually App.jsx defines routes. Let's check Main.jsx content again.
 
 function App() {
   const [products, setProducts] = useState([])
@@ -44,16 +54,47 @@ function App() {
     }
   }, [searchTerm, selectedCategory, selectedBrand])
 
-  const fetchUser = async () => {
+  const fetchUser = async (isLogin = false) => {
     try {
       if (localStorage.getItem('token')) {
         const userData = await getMe()
         setUser(userData)
+        await syncCartWithServer(isLogin)
       }
     } catch (error) {
       console.error("Error fetching user:", error)
       localStorage.removeItem('token')
       setUser(null)
+    }
+  }
+
+  const syncCartWithServer = async (isLogin = false) => {
+    try {
+      const serverCart = await getCart()
+      const localCart = JSON.parse(localStorage.getItem('cart') || '[]')
+
+      if (isLogin && localCart.length > 0) {
+        // Merge local cart into server cart only on login
+        for (const item of localCart) {
+          await addToCart(item.id, item.quantity)
+        }
+        // Fetch again after merging
+        const finalServerCart = await getCart()
+        const mergedCart = finalServerCart.map(item => ({
+          ...item.product,
+          quantity: item.quantity
+        }))
+        setCartItems(mergedCart)
+      } else {
+        // Just sync from server (server is source of truth)
+        const serverMergedCart = serverCart.map(item => ({
+          ...item.product,
+          quantity: item.quantity
+        }))
+        setCartItems(serverMergedCart)
+      }
+    } catch (error) {
+      console.error("Error syncing cart:", error)
     }
   }
 
@@ -80,6 +121,31 @@ function App() {
     }
   }, [])
 
+  // Socket.IO for Realtime Cart
+  useEffect(() => {
+    if (!user) return; // Only connect if user is logged in
+
+    const socket = io(config.apiUrl, {
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('App connected to socket for cart sync');
+    });
+
+    socket.on('cart_updated', (data) => {
+      console.log('Cart update received:', data);
+      if (data.user_id === user.id) {
+        console.log('Refetching cart for user:', user.id);
+        syncCartWithServer(false); // Refetch cart
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]); // Re-run when user changes (login/logout)
+
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
@@ -88,7 +154,15 @@ function App() {
     localStorage.setItem('cart', JSON.stringify(cartItems))
   }, [cartItems])
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
+    if (user) {
+      try {
+        await addToCart(product.id, 1)
+      } catch (error) {
+        console.error("Error adding to server cart:", error)
+      }
+    }
+
     setCartItems(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
@@ -101,17 +175,31 @@ function App() {
     setIsCartOpen(true)
   }
 
-  const handleUpdateCartQuantity = (id, quantity) => {
+  const handleUpdateCartQuantity = async (id, quantity) => {
+    if (user) {
+      try {
+        await updateCartItem(id, quantity)
+      } catch (error) {
+        console.error("Error updating server cart:", error)
+      }
+    }
     setCartItems(prev => prev.map(item =>
       item.id === id ? { ...item, quantity } : item
     ))
   }
 
-  const handleRemoveCartItem = (id) => {
+  const handleRemoveCartItem = async (id) => {
+    if (user) {
+      try {
+        await removeFromCart(id)
+      } catch (error) {
+        console.error("Error removing from server cart:", error)
+      }
+    }
     setCartItems(prev => prev.filter(item => item.id !== id))
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout()
     localStorage.removeItem('cart')
     setCartItems([])
@@ -126,13 +214,37 @@ function App() {
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
+  // Search state
+  const [searchResults, setSearchResults] = useState([])
+  const [showResults, setShowResults] = useState(false)
+
+  // Live Search Effect
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchTerm.trim().length >= 2) {
+        try {
+          const res = await api.get('/products/', { params: { q: searchTerm, limit: 5 } })
+          setSearchResults(res.data)
+          setShowResults(true)
+        } catch (error) {
+          console.error("Search error:", error)
+        }
+      } else {
+        setSearchResults([])
+        setShowResults(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   return (
     <div className="min-h-screen bg-bg text-gray-800 font-sans">
-      {/* Auth & Cart Modals */}
+      {/* ... (Auth & Cart Modals code preserved) ... */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onAuthSuccess={fetchUser}
+        onAuthSuccess={() => fetchUser(true)}
       />
       <CartDrawer
         isOpen={isCartOpen}
@@ -170,19 +282,53 @@ function App() {
             </div>
           </div>
 
-          <div className="flex-1 w-full max-w-2xl">
-            <div className="flex overflow-hidden rounded-md border-2 border-primary">
+          <div className="flex-1 w-full max-w-2xl relative">
+            <div className="flex overflow-hidden rounded-md border-2 border-primary relative z-10 bg-white">
               <input
                 type="text"
                 placeholder="Tìm kiếm dụng cụ, máy móc..."
                 className="flex-1 py-3 px-4 focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => { if (searchResults.length > 0) setShowResults(true) }}
+                onBlur={() => setTimeout(() => setShowResults(false), 200)}
               />
               <button className="bg-primary hover:bg-primary-dark text-navy px-8 transition-colors">
                 <Search className="h-6 w-6 font-bold" />
               </button>
             </div>
+
+            {/* Live Search Results Dropdown */}
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-xl rounded-b-lg overflow-hidden z-0 mt-[-2px] pt-2">
+                {searchResults.map(product => (
+                  <Link
+                    key={product.id}
+                    to={`/product/${product.slug}`}
+                    className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                    onClick={() => setShowResults(false)}
+                  >
+                    <img
+                      src={product.image_url?.startsWith('http') ? product.image_url : `${config.apiUrl}${product.image_url}`}
+                      alt={product.name}
+                      className="w-12 h-12 object-contain border border-gray-100 rounded"
+                    />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-navy line-clamp-1">{product.name}</h4>
+                      <div className="text-xs text-gray-400 font-bold">SKU: {product.sku}</div>
+                    </div>
+                    <div className="text-sm font-black text-accent whitespace-nowrap">
+                      {product.price ? product.price.toLocaleString() : 'Liên hệ'} <span className="text-[10px] uppercase text-gray-400">₫</span>
+                    </div>
+                  </Link>
+                ))}
+                <div className="p-2 bg-gray-50 text-center">
+                  <button onClick={() => { fetchProducts(); setShowResults(false); }} className="text-xs font-black text-navy uppercase tracking-widest hover:text-primary">
+                    Xem tất cả kết quả ({searchResults.length}+)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-6">
