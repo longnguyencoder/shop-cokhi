@@ -10,7 +10,7 @@ import DynamicMegaMenu from './components/DynamicMegaMenu'
 import SITE_CONFIG from './config/site'
 import AdminLayout from './layouts/AdminLayout'
 import AdminDashboard from './pages/Admin/Dashboard'
-import AdminOrders from './pages/admin/AdminOrders'
+import AdminOrders from './pages/Admin/AdminOrders'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { io } from 'socket.io-client' // Import socket
 import config from './config' // Import config
